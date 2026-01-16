@@ -6,16 +6,11 @@
 #include <cstring>
 #include <cstdio>
 #include <errno.h>
+#include <random>
 
 using namespace std;
 
 enum { BUFSZ = 100 };
-
-static Rand *r;
-
-static long unsigned int getrand(ptrdiff_t i) {
-	return r->bits() % i;
-}
 
 void dumptiles(FILE *out, vector<int> ts, unsigned int width, unsigned int height) {
 	for (unsigned int i = 0; i < width*height; i++) {
@@ -115,19 +110,18 @@ int main(int argc, char *argv[]) {
 	if (seedval == -1)
 		seedval = time(NULL);
 
-	r = new Rand(seedval);
+	//default_random_engine eng{ static_cast<long unsigned int>(seedval)};
+	mt19937 g(seedval);
 
 	for (unsigned int i=0; i<width*height; i++) {
 		puzzle.push_back(i);
 	}
 
-	long unsigned int (*p_rand)(ptrdiff_t) = &getrand;
-
 	for (unsigned int i = 0; i < n; i++) {
 		unsigned int check = 1;
 
 		while (check != 0) {
-			random_shuffle(puzzle.begin(), puzzle.end(), p_rand);
+			shuffle(puzzle.begin(), puzzle.end(), g);
 			if (solvable(puzzle, width, height) == 0)
 				check = 0;
 			else
