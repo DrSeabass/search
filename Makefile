@@ -16,7 +16,7 @@ CPP_TARGET:=c++14
 C_TARGET:=c99
 
 #FLAGS:=-Wall -Werror -g -O3 -static
-FLAGS:=-Wall -g -O3
+FLAGS:=-Wall -Werror -g -O3
 
 # GL_SILENCE_DEPRECATION silences opengl deprecation errors on osx.
 FLAGS +=-DGL_SILENCE_DEPRECATION
