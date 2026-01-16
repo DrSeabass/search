@@ -178,9 +178,12 @@ bool WatchUi::frame() {
 void WatchUi::move() {
 	loc.x += gridmap->mvs[*iter].dx;
 	loc.y += gridmap->mvs[*iter].dy;
-	*iter++;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
+	*iter++;
 	currentframe++;
+#pragma GCC diagnostic pop
 }
 
 void WatchUi::draw() {

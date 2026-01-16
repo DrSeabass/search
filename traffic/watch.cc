@@ -168,7 +168,10 @@ void WatchUi::move() {
 		else {
 			loc.x += gridmap->mvs[*iter].dx;
 			loc.y += gridmap->mvs[*iter].dy;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 			*iter++;
+#pragma GCC diagnostic pop
 		}
 	}
 	
@@ -190,9 +193,11 @@ void WatchUi::move() {
 		obs.scale(scale.x, scale.y);
 		obstacles.push_back(obs);
 	}
-
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
 	currentframe++;
 	currentobstacletime++;
+#pragma GCC diagnostic pop
 }
 
 void WatchUi::draw() {
