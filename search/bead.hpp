@@ -89,13 +89,9 @@ template <class D> struct BeadSearch : public SearchAlgorithm<D> {
 		//closed.add(n0);
 		open.push(n0);
 
-		int depth = 0;
-
-
 		bool done = false;
     
 		while (!open.empty() && !done && !SearchAlgorithm<D>::limit()) {
-			depth++;
       
 			Node **beam = new Node*[width];
 			int c = 0;
