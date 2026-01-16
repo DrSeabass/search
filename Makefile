@@ -12,8 +12,11 @@ CC:=gcc
 #CC:=clang
 
 AR:=ar
+CPP_TARGET:=c++14
+C_TARGET:=c99
 
-FLAGS:=-Wall -Werror -g -O3 -static
+#FLAGS:=-Wall -Werror -g -O3 -static
+FLAGS:=-Wall -g -O3
 
 # GL_SILENCE_DEPRECATION silences opengl deprecation errors on osx.
 FLAGS +=-DGL_SILENCE_DEPRECATION
@@ -22,9 +25,9 @@ ifeq ($(CXX), clang)
 	FLAGS+=-fno-color-diagnostics
 endif
 
-CXXFLAGS:=$(FLAGS) -std=c++0x
+CXXFLAGS:=$(FLAGS) -std=$(CPP_TARGET)
 
-CFLAGS:=$(FLAGS) -std=c99
+CFLAGS:=$(FLAGS) -std=$(C_TARGET)
 
 OS := $(shell uname)
 ifeq ($(OS), Darwin)
@@ -33,7 +36,7 @@ else
 LIB_RT_UNLESS_OSX := "-lrt"
 endif
 
-LDFLAGS:=$(FLAGS) -std=c++0x $(LIB_RT_UNLESS_OSX)
+LDFLAGS:=$(FLAGS) -std=$(CPP_TARGET) $(LIB_RT_UNLESS_OSX)
 
 EVERYTHING:=
 
