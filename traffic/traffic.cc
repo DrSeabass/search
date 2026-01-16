@@ -24,7 +24,7 @@ Traffic::Cost Traffic::pathcost(const std::vector<State>&, const std::vector<Ope
 	Traffic::State state = initialstate();
 	Traffic::Cost cost(0);
 
-	int t = 0;
+	//	int t = 0;
 	for (int i = ops.size() - 1; i >= 0; i--) {
 
 //		std::pair<int,int> loc = map->coord(state.loc);
@@ -32,7 +32,7 @@ Traffic::Cost Traffic::pathcost(const std::vector<State>&, const std::vector<Ope
 //			std::pair<int,int> obs = map->obstacles[j].positionAt(map->w, map->h, t);
 //			assert(loc != obs);
 //		}
-		t++;
+//		t++;
 		Traffic::State copy(state);
 		Traffic::Edge e(*this, copy, ops[i]);
 		controls.push_back(ops[i]);
