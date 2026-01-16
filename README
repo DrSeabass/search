@@ -35,3 +35,19 @@ python3 problemGen.py -b 10 -ss 3 -sg 5 -f demo_problem.txt
 cat demo_problem.txt | ./20bw_solver astar
 cat demo_problem.txt | ./20bw_solver wastar -wt 2.25
 ```
+
+## drobot
+
+A domain-specific implementation of dock-worker robots, a classic planning domain.
+
+### Instance Generation
+
+**Not Provided**
+
+### Invoking Solver
+
+```
+cat demo_problem.txt | ./drobot_solver astar
+cat demo_problem.txt | ./drobot_solver wastar -wt 2.25
+```
+
