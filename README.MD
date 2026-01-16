@@ -113,3 +113,52 @@ For creating movies of recorded search runs.  It's currently unclear how to reco
 * scenario_solver
 * 2poly
 
+## pancake
+### Instance Generation
+
+Not provided
+
+### Invoking Solver
+
+```
+./50pancake_solver astar
+./70pancake_solver astar
+```
+
+## plat2d
+
+Videogame pathfinding Instances based off of [Ethan's game Mid](https://github.com/eaburns/mid)
+
+### Instance Generation
+
+Via ```mklvls.sh``` but assumes you've built mid and have access to the level generator in ```cmd```.
+
+### Invoking Solver
+
+```
+cat demo_lvl | ./plat2d_solver astar
+```
+
+## segments
+### Instance Generation
+### Invoking Solver
+
+## synth_tree
+### Instance Generation
+### Invoking Solver
+
+## tiles
+### Instance Generation
+### Invoking Solver
+
+## traffic
+### Instance Generation
+### Invoking Solver
+
+## vacuum
+### Instance Generation
+### Invoking Solver
+
+## visnav
+### Instance Generation
+### Invoking Solver
