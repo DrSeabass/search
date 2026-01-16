@@ -257,7 +257,7 @@ public:
 	void clear() {
 		qs.clear();
 		min = 0;
-        fill = 0;
+		fill = 0;
 	}
 };
 
