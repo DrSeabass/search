@@ -5,6 +5,7 @@
 #include <climits>
 #include <cstdio>
 #include <string>
+#include <cstdint>
 
 void fatal(const char*, ...);
 

@@ -159,7 +159,7 @@ public:
 	}
 
 	unsigned long hash(const void*) {
-		boost::hash<boost::multiprecision::uint128_t> hasher;
+		std::hash<boost::multiprecision::uint128_t> hasher;
 		return hasher(word);
 	}
 
