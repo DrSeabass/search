@@ -344,12 +344,12 @@ private:
 		Node *n0 = nodes->construct();
 		d.pack(n0->state, s0);
 		n0->h = d.h(s0);
+		n0->d = d.d(s0);
 		n0->g = Cost(0);
 		n0->f = n0->h + n0->g;
 		n0->dhat = n0->d;
 		n0->hhat = n0->h;
 		n0->fhat = n0->f;
-		n0->d = d.d(s0);
 		n0->op = n0->pop = D::Nop;
 		n0->parent = NULL;
 		return n0;
