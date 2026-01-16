@@ -140,8 +140,24 @@ cat demo_lvl | ./plat2d_solver astar
 ```
 
 ## segments
+
+Robotic motion planning navigation assuming holonomic motion and a
+point robot.  Basically you move from from corner of polygon to corner
+of polygon while navigating a two dimmensional field strewn with
+shapes, a start, and a goal.
+
 ### Instance Generation
+
+```
+./mkinst -width 80 -height 25 -nangle 16 -seed 42
+```
+
 ### Invoking Solver
+
+```
+./mkinst -seed 42 > demo.inst
+cat demo.inst | ./segments_solver greedy
+```
 
 ## synth_tree
 ### Instance Generation
