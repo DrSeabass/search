@@ -16,6 +16,9 @@ search/learnh/lms needs lapack:
 
 Clang versions less than 3.0 do not seem to work.
 
+# Outstanding Issues
+Please see [[TODO.MD]]
+
 # Domains
 
 ## blocksworld
@@ -201,4 +204,4 @@ None Provided
 
 ```
 cat tmp.inst | ./visnav_solver greedy
-```
+```\
