@@ -76,13 +76,13 @@ void Image::write_epshdrletter(FILE *out, unsigned int marginpt) const {
 
 	double maxw = Widthpt - marginpt * 2, maxh = Heightpt - marginpt * 2;
 	double scalex = maxw / width, scaley = maxh / height;
-	double transx = marginpt, transy = (Heightpt - height * scalex) / 2;
+	double transx = marginpt, transy = ((double)Heightpt - height * scalex) / 2;
 
 	double scale = scalex;
 	if (scaley < scalex) {
 		scale = scaley;
 		transy = marginpt;
-		transx = (Widthpt - width * scaley) / 2;
+		transx = ((double)Widthpt - width * scaley) / 2;
 	}
 
 	fprintf(out, "%g %g translate\n", transx, transy);
