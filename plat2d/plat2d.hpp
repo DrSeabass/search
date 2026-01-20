@@ -21,15 +21,15 @@ static const double Maxx = Runspeed;
 
 // Maxy is the maximum travel distance in the y-direction
 // in a single frame.
-static const double Maxy = Jmpspeed > Body::Maxdy ? Jmpspeed : Body::Maxdy;
+static const double Maxy = Jmpspeed > (double)Body::Maxdy ? Jmpspeed : (double)Body::Maxdy;
 
 // W is the minimum width of a tile in 'frames'.  I.e., at max
 // speed how many frames does it require to traverse the
 // width of a tile.
-static const double W = Tile::Width / Maxx;
+static const double W = (double)Tile::Width / Maxx;
 
 // H is the minimum height of a tile in 'frames'.
-static const double H = Tile::Height /  Maxy;
+static const double H = (double)Tile::Height /  Maxy;
 
 struct Plat2d {
 
@@ -55,7 +55,7 @@ struct Plat2d {
 			p.scale(1.0/d->maxx, 1.0/d->maxy);
 			vec[0] = p.x;
 			vec[1] = p.y;
-			vec[2] = (player.body.dy+Body::Maxdy)/(2*Body::Maxdy);
+			vec[2] = (player.body.dy + (double)Body::Maxdy) / (2 * (double)Body::Maxdy);
 		}
 
 		Player player;
@@ -193,8 +193,8 @@ struct Plat2d {
 		buf.player.body.dy = pkd.dy;
 		buf.player.body.bbox.min.x = pkd.x;
 		buf.player.body.bbox.min.y = pkd.y;
-		buf.player.body.bbox.max.x = pkd.x + Player::Width;
-		buf.player.body.bbox.max.y = pkd.y + Player::Height;
+		buf.player.body.bbox.max.x = pkd.x + (double)Player::Width;
+		buf.player.body.bbox.max.y = pkd.y + (double)Player::Height;
 		return buf;
 	}
 

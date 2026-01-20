@@ -120,14 +120,14 @@ void Lvl::draw(Image &img) const {
 			Tile::draw(img, xpos, ypos, Image::black);
 
 		if (tiles[t].flags & (Tile::Up | Tile::Down)) {
-			xpos += 0.5 * Tile::Width;
-			ypos += 0.5 * Tile::Height;
-			double rot = M_PI / 2;
-			if (tiles[t].flags & Tile::Down)
-				rot = 3 * M_PI / 2;
-			geom2d::Pt c = geom2d::Pt(xpos, ypos);
-			geom2d::Poly t = geom2d::Poly::triangle(c, Tile::Width, M_PI/4, rot);
-			img.add(new Image::Poly(t, Image::black, 1));
+		  xpos += 0.5 * (double)Tile::Width;
+		  ypos += 0.5 * (double)Tile::Height;
+		  double rot = M_PI / 2;
+		  if (tiles[t].flags & Tile::Down)
+		    rot = 3 * M_PI / 2;
+		  geom2d::Pt c = geom2d::Pt(xpos, ypos);
+		  geom2d::Poly t = geom2d::Poly::triangle(c, Tile::Width, M_PI/4, rot);
+		  img.add(new Image::Poly(t, Image::black, 1));
 		}
 	}
 	}

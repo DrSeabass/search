@@ -67,7 +67,7 @@ void Body::dofall(const Lvl &lvl, const Isect &is) {
 		fall = true;
 	}
 
-	if (fall && dy < Maxdy) {
+	if (fall && dy < (double)Maxdy) {
 		Lvl::Blkinfo bi = lvl.majorblk(bbox);
 		dy += bi.tile.gravity();
 	}

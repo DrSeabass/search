@@ -62,7 +62,7 @@ struct Lvl {
 	// block that contains a majority of the rectangle.
 	Blkinfo majorblk(const Bbox &r) const {
 		const geom2d::Pt &c = r.center();
-		return at(c.x / Tile::Width, c.y / Tile::Height);
+		return at(c.x / (double)Tile::Width, c.y / (double)Tile::Height);
 	}
 
 private:
