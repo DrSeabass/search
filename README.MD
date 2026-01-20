@@ -188,8 +188,17 @@ No provided instance generation
 
 ## vacuum
 ### Instance Generation
+None Provided
 ### Invoking Solver
 
 ## visnav
 ### Instance Generation
+```
+./rand | ./inst
+```
+
 ### Invoking Solver
+
+```
+cat tmp.inst | ./visnav_solver greedy
+```
