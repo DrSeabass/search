@@ -73,7 +73,7 @@ Takes a grid and produces a random instance on top of it by adding start and goa
 
 ```
 ./mkseedinst -height 25 -width 80 -prob 0.1 > demo.grid
-./randinst -s 2 -m demo.grid > demon.instanec
+./randinst -s 2 -m demo.grid > demo.instance
 ```
 
 
