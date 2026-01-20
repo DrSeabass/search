@@ -7,7 +7,7 @@ CC:=gcc
 #CC:=clang
 
 AR:=ar
-CPP_TARGET:=c++17
+CPP_TARGET:=c++23
 C_TARGET:=c99
 
 FLAGS:=-Wall -Werror -Wno-vla -g -O3 #-static
