@@ -17,7 +17,7 @@ search/learnh/lms needs lapack:
 Clang versions less than 3.0 do not seem to work.
 
 # Outstanding Issues
-Please see [TODO.MD](./TODO.MD)
+Please see [TODO.md](./TODO.md)
 
 # Domains
 
