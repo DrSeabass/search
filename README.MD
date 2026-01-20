@@ -177,7 +177,14 @@ No provided instance generation
 
 ## traffic
 ### Instance Generation
+```
+./randinst <width> <height> <number of objects> <seed>
+./randinst 200 100 10 42
+```
 ### Invoking Solver
+```
+./randinst 5 5 1 0 | ./traffic_solver greedy
+```
 
 ## vacuum
 ### Instance Generation
