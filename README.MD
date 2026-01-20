@@ -161,11 +161,19 @@ cat demo.inst | ./segments_solver greedy
 
 ## synth_tree
 ### Instance Generation
+
+No provided instance generation
+
 ### Invoking Solver
 
 ## tiles
 ### Instance Generation
+
+```./generator -h4 -w4 -n100 -d ./4x4 -seed 42```
+
 ### Invoking Solver
+
+```cat 4x4/0 | ./15md_solver greedy```
 
 ## traffic
 ### Instance Generation
