@@ -60,7 +60,7 @@ int main(int argc, char *argv[]) {
 	graph.translate(-min.x, -min.y);
 	double w = max.x - min.x;
 	double h = max.y - min.y;
-	double sx = Width / w, sy = Height / h;
+	double sx = (double)Width / w, sy = (double)Height / h;
 	if (sx < sy)
 		graph.scale(sx, sx);
 	else

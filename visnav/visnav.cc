@@ -28,7 +28,7 @@ void VisNav::save(const char *file, std::vector<State> path) {
 	g.translate(-min.x, -min.y);
 	double w = max.x - min.x;
 	double h = max.y - min.y;
-	double sx = Width / w, sy = Height / h;
+	double sx = (double)Width / w, sy = (double)Height / h;
 	if (sx < sy)
 		g.scale(sx, sx);
 	else
