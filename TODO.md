@@ -9,9 +9,16 @@ None known as of now
 
 # Modernization
 
-* Move from C++14 towards C++23
+* Moving away from RDB data representation and going to something else
+    * JSON
+    * SQL
+    * Document Database?
 
 # Features
+
+* Experiment Running Harness
+* Improving Error & Help Messages
+* Make Documentation ([README](README.MD), not code docs) Useful
 
 ## Missing Instance Generators
 
