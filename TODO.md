@@ -22,4 +22,3 @@ None known as of now
 
 ## Missing Instance Generators
 * Synthetic Tree
-* Vacuum
