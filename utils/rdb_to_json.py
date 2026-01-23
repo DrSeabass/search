@@ -19,26 +19,22 @@ This script understands the subset of the RDB format used by files like
 JSON STRUCTURE
 --------------
 
-The output JSON has the following top-level structure:
+The output JSON is *flat* at the top level:
 
     {
         "format": <int or null>,          # RDB format version, if present
-        "pairs": {                        # scalar key/value pairs from #pair lines
-            "wall start date": "...",
-            ...
+        "wall start date": "...",        # scalar key/value pairs from #pair lines
+        "wall start time": 1.76918e+09,
+        ...,
+        "incumbent": {                    # each table is a top-level object
+            "columns": ["incumbent num", ...],
+            "data": {
+                "incumbent num": [1, 2, 3, ...],
+                "incumbent nodes expanded": [77, 15065, 45397, ...],
+                ...
+            }
         },
-        "tables": [                       # column-oriented tables from #altcols/#altrow
-            {
-                "name": "incumbent",    # table name (first token on #altcols/#altrow)
-                "columns": ["incumbent num", ...],
-                "data": {
-                    "incumbent num": [1, 2, 3, ...],
-                    "incumbent nodes expanded": [77, 15065, 45397, ...],
-                    ...
-                }
-            },
-            ...
-        ]
+        ... (one key per table)
     }
 
 Values in both "pairs" and table columns are parsed as numbers when possible:
@@ -197,11 +193,25 @@ def _parse_rdb(stream: Iterable[str]) -> Dict[str, Any]:
         # Unknown tags are ignored so we remain forwards-compatible with
         # additional RDB constructs.
 
-    return {
-        "format": format_version,
-        "pairs": pairs,
-        "tables": list(tables.values()),
-    }
+    # Build the final, flattened JSON object.
+    result: Dict[str, Any] = {}
+
+    if format_version is not None:
+        result["format"] = format_version
+
+    # Promote all pairs to top-level keys.
+    # NOTE: in the unlikely event of a collision with "format" or a table
+    # name, the last assignment wins.
+    result.update(pairs)
+
+    # Each table becomes a top-level key named after the table.
+    for tname, table in tables.items():
+        result[tname] = {
+            "columns": table["columns"],
+            "data": table["data"],
+        }
+
+    return result
 
 
 def main(argv: Optional[List[str]] = None) -> None:
