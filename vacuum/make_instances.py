@@ -47,7 +47,7 @@ import sys
 
 USAGE = (
     "./make_instances.py --height <height> --width <width> "
-    "--p-blocked <prob> --dirts <num_dirt_piles> "
+    "--p-blocked <prob> --dirts <num_dirt_piles> --chargers <num_chargers>"
     "[--seed <seed>] [--count <num_instances>] [--out-dir <output_directory>]"
 )
 
