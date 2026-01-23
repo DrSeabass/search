@@ -2,23 +2,24 @@
 
 """Random instance generator for the vacuum world.
 
-This script generates instances compatible with `vacuum_instance.ml`.
+This script generates instances compatible with the C++ implementation in
+`vacuum/vacuum.cc`.
 
-Each instance file has the format produced by `fprint` in
-`vacuum/vacuum_instance.ml`:
+The C++ code expects the following format:
 
-    <height> <width>\n
-    Board:\n
-    <row h-1>\n
-    ...\n
+    <width>\n
+    <height>\n
     <row 0>\n
-    \n
+    <row 1>\n
+    ...\n
+    <row h-1>\n
 where each cell is one of:
 
     '#'  blocked
-    'V'  starting location of the vacuum
     '*'  a pile of dirt
-    ' '  empty/unblocked cell
+    '@'  starting location of the vacuum
+    ':'  a charger
+    '_'  empty/unblocked cell
 
 Usage (flags come in flag/value pairs, order does not matter):
 
@@ -55,6 +56,7 @@ EXPECTED_FLAGS = [
     "--width",
     "--p-blocked",
     "--dirts",
+    "--chargers",
     "--seed",
     "--count",
     "--out-dir",
@@ -65,6 +67,7 @@ DEFAULTS = {
     "--width": None,
     "--p-blocked": 0.1,  # probability each cell is blocked
     "--dirts": 2,        # number of piles of dirt
+    "--chargers": 0,     # number of charger tiles
     "--seed": None,
     "--count": 1,
     "--out-dir": ".",
@@ -74,13 +77,15 @@ DEFAULTS = {
 def make_instance(settings: dict, index: int) -> None:
     """Create a single vacuum instance and write it to `<out-dir>/<index>`.
 
-    The generated instance mirrors the representation in `vacuum_instance.ml`.
+    The generated instance mirrors the representation expected by the C++
+    constructor in `vacuum/vacuum.cc`.
     """
 
     height = settings["--height"]
     width = settings["--width"]
     p_blocked = settings["--p-blocked"]
     num_dirts = settings["--dirts"]
+    num_chargers = settings["--chargers"]
 
     # Generate blocked cells: True means blocked.
     blocked = [
@@ -110,32 +115,45 @@ def make_instance(settings: dict, index: int) -> None:
         if (dx, dy) != (sx, sy) and not blocked[dy][dx] and (dx, dy) not in dirt_positions:
             dirt_positions.append((dx, dy))
 
+    # Place chargers similarly, ensuring they don't overlap start or dirt.
+    charger_positions = []  # list of (x, y)
+    for _ in range(num_chargers):
+        cx = random.randrange(width)
+        cy = random.randrange(height)
+        if (
+            (cx, cy) != (sx, sy)
+            and not blocked[cy][cx]
+            and (cx, cy) not in dirt_positions
+            and (cx, cy) not in charger_positions
+        ):
+            charger_positions.append((cx, cy))
+
     out_dir = Path(settings["--out-dir"])
     out_path = out_dir / str(index)
 
-    # Write in the same format `fprint` uses in `vacuum_instance.ml`.
+    # Write in the same format the C++ Vacuum class expects.
     with out_path.open("w", encoding="utf-8") as f:
-        # Note: ML prints "height width" on the first line.
-        f.write(f"{height} {width}\n")
-        f.write("Board:\n")
+        # First line: width, second line: height.
+        f.write(f"{width}\n")
+        f.write(f"{height}\n")
 
-        # ML prints rows from y = height-1 down to 0, columns x = 0..width-1.
-        for y in range(height - 1, -1, -1):
+        # C++ reads rows y = 1..h and columns x = 1..w in this order, so
+        # we emit rows from y = 0 up to h-1, each of length `width`.
+        for y in range(height):
             row_chars = []
             for x in range(width):
                 if blocked[y][x]:
                     c = "#"
                 elif (x, y) == (sx, sy):
-                    c = "V"
+                    c = "@"
                 elif (x, y) in dirt_positions:
                     c = "*"
+                elif (x, y) in charger_positions:
+                    c = ":"
                 else:
-                    c = " "
+                    c = "_"
                 row_chars.append(c)
             f.write("".join(row_chars) + "\n")
-
-        # Trailing blank line, matching `fprint`.
-        f.write("\n")
 
 
 def make_instances(settings: dict) -> None:
