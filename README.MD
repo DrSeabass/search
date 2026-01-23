@@ -45,7 +45,15 @@ A domain-specific implementation of dock-worker robots, a classic planning domai
 
 ### Instance Generation
 
-**Not Provided**
+Done via a Python script that emits text files in the native drobot format.
+
+Generate a single instance and write it to a file:
+
+```
+cd drobot
+./make_instances.py --nlocs 20 --piles-per-loc 3 --cranes-per-loc 2 \
+    --ncontainers 100 --seed 42 -o demo_problem.txt
+```
 
 ### Invoking Solver
 
@@ -119,7 +127,15 @@ For creating movies of recorded search runs.  It's currently unclear how to reco
 ## pancake
 ### Instance Generation
 
-Not provided
+Instances are generated via a lightweight Python script that shuffles
+``ncakes`` into a random permutation and writes it to numbered files.
+
+Generate 10 pancake instances with 50 cakes each:
+
+```
+cd pancake
+./make_instances.py --seed 42 --ncakes 50 --count 10 --out-dir ./instances
+```
 
 ### Invoking Solver
 
@@ -165,9 +181,32 @@ cat demo.inst | ./segments_solver greedy
 ## synth_tree
 ### Instance Generation
 
-No provided instance generation
+Via a Python script that produces simple seed files, each defining a
+deterministic synthetic tree explored by the C++ domain.
+
+Generate 10 instances using RNG seed 42:
+
+```
+cd synth_tree
+./make_instances.py --count 10 --seed 42 --out-dir ./instances
+```
 
 ### Invoking Solver
+
+Each generated instance is a single integer seed on its own line. The
+``synth_tree_solver`` reads this from standard input.
+
+Run A* on the first generated instance with no heuristic error:
+
+```
+cat instances/1 | ./synth_tree_solver astar
+```
+
+Optionally, you can inject heuristic error using the ``-err`` flag:
+
+```
+cat instances/1 | ./synth_tree_solver astar -err 0.1
+```
 
 ## tiles
 ### Instance Generation
@@ -191,8 +230,34 @@ No provided instance generation
 
 ## vacuum
 ### Instance Generation
-None Provided
+
+Instances are generated via a Python script that creates random grids in
+the format expected by the C++ ``Vacuum`` domain.
+
+Generate 10 vacuum instances on a 10x15 grid with 20% blocked cells, 5
+dirts, and 1 charger tile:
+
+```
+cd vacuum
+./make_instances.py --height 10 --width 15 --p-blocked 0.2 --dirts 5 \
+    --chargers 1 --seed 42 --count 10 --out-dir ./instances
+```
 ### Invoking Solver
+
+Each generated instance is written as ``instances/1``, ``instances/2``,
+and so on. The solver reads from standard input.
+
+Run A* with unit costs on the first generated instance:
+
+```
+cat instances/1 | ./vacuum_solver astar
+```
+
+You can also use weighted A* and/or cost variants via ``-cost``:
+
+```
+cat instances/1 | ./vacuum_solver wastar -wt 2.25 -cost life
+```
 
 ## visnav
 ### Instance Generation
