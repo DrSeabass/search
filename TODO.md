@@ -19,6 +19,3 @@ None known as of now
 * Experiment Running Harness
 * Improving Error & Help Messages
 * Make Documentation ([README](README.MD), not code docs) Useful
-
-## Missing Instance Generators
-* Synthetic Tree
