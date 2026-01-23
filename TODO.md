@@ -21,7 +21,5 @@ None known as of now
 * Make Documentation ([README](README.MD), not code docs) Useful
 
 ## Missing Instance Generators
-
-* Dock Yard Robots
 * Synthetic Tree
 * Vacuum
