@@ -23,6 +23,5 @@ None known as of now
 ## Missing Instance Generators
 
 * Dock Yard Robots
-* Pancakes
 * Synthetic Tree
 * Vacuum
