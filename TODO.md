@@ -11,6 +11,7 @@ None known as of now
 
 * Moving away from RDB data representation and going to something else
     * JSON
+        * utils/rdb_to_json.py helps with this a bit, but it's a stop-gap measure.
     * SQL
     * Document Database?
 
