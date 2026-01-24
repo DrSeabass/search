@@ -29,7 +29,7 @@ A bespoke implementation of the [classic planning domain](https://en.wikipedia.o
 
 Done via python script.
 ```
-python3 problemGen.py -b 10 -ss 3 -sg 5 -f demo_problem.txt
+python3 make_instances.py -b 10 -ss 3 -sg 5 -f demo_problem.txt
 ```
 
 ### Invoking Solvers
