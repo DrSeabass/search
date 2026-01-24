@@ -35,7 +35,15 @@ None known as of now
 * Improving Error & Help Messages
 * Make Documentation ([README](README.MD), not code docs) Useful
 * Pancake solving on arbitrary size
+* More algorithms for menagerie
 
 # Janitorial
 * Rename Instance Generation for all domains so that it is consistent
     * This requires non-trivial work for gridnav and a few other domains
+* Investigate Eaburns & Snlemons branches to see if there's more to merge in
+    * eaburns is integrate
+    * snlemons has several branches
+        * they look like they've been merged in, but not deleted from the remote
+        * Can safely ignore for now
+        * Reach out and see if you get a response on current state + rectangle implementation
+
