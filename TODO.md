@@ -18,5 +18,24 @@ None known as of now
 # Features
 
 * Experiment Running Harness
+    * Should this be baked in or a separate repository?
+        * For
+            * Replicating paper results becomes trivial
+                * Check out tagged revision
+                * Build
+                * run associated scripts
+            * Setting up new researcher / student is faster
+            * These programs don't really make sense unless run in bulk. The intent is evaluation
+        * Against
+            * Yet another thing this has to do and keep in sync
+            * Experiments are not common across researchers
+            * The notion is very repeatable
+                * Run these binaries with these configurations in this sequence, piping output here
+        * Maybe a sub-repo is what makes sense here
 * Improving Error & Help Messages
 * Make Documentation ([README](README.MD), not code docs) Useful
+* Pancake solving on arbitrary size
+
+# Janitorial
+* Rename Instance Generation for all domains so that it is consistent
+    * This requires non-trivial work for gridnav and a few other domains
