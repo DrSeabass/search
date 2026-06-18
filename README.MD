@@ -19,6 +19,23 @@ Clang versions less than 3.0 do not seem to work.
 # Outstanding Issues
 Please see [TODO.md](./TODO.md)
 
+# Empirical Evaluation
+
+Two layers run the standard algorithms (A\*, weighted A\*, greedy, speedy, ...)
+across the working domains:
+
+* [regression/](./regression/) — a fast, dependency-free **performance
+  regression baseline**. `make regression` generates small fixed-seed instances,
+  runs the solvers, and diffs deterministic metrics (cost, expansions,
+  generated, length) against committed golden numbers. Use it as a behavioral
+  smoke test before committing.
+* [experiments/2026-06-baseline/](./experiments/2026-06-baseline/) — a worked
+  **Downward Lab study** showing how to run an empirical evaluation here:
+  reproducible instance sets, Lab-owned time/memory limits, and
+  `AbsoluteReport` + scatter-plot output, runnable locally or on Tetralith.
+
+Both are documented in their own READMEs.
+
 # Domains
 
 ## blocksworld

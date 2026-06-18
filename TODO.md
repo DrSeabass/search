@@ -1,11 +1,20 @@
 # Bugs
 
-None known as of now
+* blocksworld: intermittent assertion failure in `Blocksworld::pathcost`
+  (blocksworld/blocksworld.cc:64, `e.state.eq(this, path[i])`). Data-dependent —
+  reproduces on some generated instances (e.g. `make_instances.py -b 6 -ss 2 -sg 3`
+  on certain seeds), not others. Disqualifies blocksworld from the regression
+  baseline until fixed.
 
 ## Possible Bugs
 
 * Haven't seen a segments instance solved.  May be a bug in implementation
+  * `segments/mkinst` CLI also rejects the README's documented flags
+    ("Failed to read the turning angle step").
 * VisNav seg faults
+* vacuum: a charge operator stalls/loops the search when `--chargers > 0`
+  (prints "Charge operator!" then fails to terminate). Use `--chargers 0` until
+  resolved. Likely a stray debug print + buggy charge-op handling.
 
 # Modernization
 
@@ -18,6 +27,14 @@ None known as of now
 # Features
 
 * Experiment Running Harness
+    * RESOLVED (initial cut): a baseline + harness now lives in-repo.
+        * `regression/` — fast deterministic regression baseline (`make regression`).
+        * `experiments/2026-06-baseline/` — worked Downward Lab study (the
+          chosen harness; shares the analysis pipeline with the FD/Scorpion side).
+        * The MongoDB document-store design in `experiment_running_description.md`
+          / `agentic_experiment_running_plan.md` is deferred as a more ambitious,
+          orthogonal effort (see ALGORITHM_PORT_TODO.md).
+    * Original open question retained below for the record:
     * Should this be baked in or a separate repository?
         * For
             * Replicating paper results becomes trivial
@@ -26,6 +43,7 @@ None known as of now
                 * run associated scripts
             * Setting up new researcher / student is faster
             * These programs don't really make sense unless run in bulk. The intent is evaluation
+            * This is how other projects in my lab are done (e.g. Scorpion)
         * Against
             * Yet another thing this has to do and keep in sync
             * Experiments are not common across researchers
