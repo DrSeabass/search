@@ -1,0 +1,8 @@
+# Reproducible from the seeded generators; regenerated on each run.
+/instances/
+# Lab experiment artifacts (run dirs, eval, reports).
+/data/
+# Local virtualenv created by `uv sync` / `pip install -e .`.
+/.venv/
+__pycache__/
+*.pyc
