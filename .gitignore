@@ -2,6 +2,8 @@
 *.d
 *.a
 *.gch
+__pycache__/
+*.pyc
 */*_solver
 .utils_test
 .structs_test

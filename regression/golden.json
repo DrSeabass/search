@@ -1,0 +1,98 @@
+{
+  "drobot :: astar": {
+    "final sol cost": 5.884319,
+    "final sol length": 22,
+    "total nodes expanded": 50954,
+    "total nodes generated": 230040
+  },
+  "drobot :: greedy": {
+    "final sol cost": 6.231911,
+    "final sol length": 26,
+    "total nodes expanded": 95,
+    "total nodes generated": 405
+  },
+  "gridnav :: astar": {
+    "final sol cost": 83.0,
+    "final sol length": 84,
+    "total nodes expanded": 95,
+    "total nodes generated": 179
+  },
+  "gridnav :: greedy": {
+    "final sol cost": 85.0,
+    "final sol length": 86,
+    "total nodes expanded": 88,
+    "total nodes generated": 160
+  },
+  "gridnav :: wastar -wt 2": {
+    "final sol cost": 85.0,
+    "final sol length": 86,
+    "total nodes expanded": 88,
+    "total nodes generated": 160
+  },
+  "pancake :: greedy": {
+    "final sol cost": 81.0,
+    "final sol length": 82,
+    "total nodes expanded": 81,
+    "total nodes generated": 3889
+  },
+  "pancake :: wastar -wt 3": {
+    "final sol cost": 57.0,
+    "final sol length": 58,
+    "total nodes expanded": 74,
+    "total nodes generated": 3553
+  },
+  "synth_tree :: astar": {
+    "final sol cost": 500.0,
+    "final sol length": 89,
+    "total nodes expanded": 88,
+    "total nodes generated": 2200
+  },
+  "synth_tree :: greedy": {
+    "final sol cost": 582.0,
+    "final sol length": 67,
+    "total nodes expanded": 66,
+    "total nodes generated": 1650
+  },
+  "tiles :: greedy": {
+    "final sol cost": 146.0,
+    "final sol length": 147,
+    "total nodes expanded": 3934,
+    "total nodes generated": 8425
+  },
+  "tiles :: speedy": {
+    "final sol cost": 146.0,
+    "final sol length": 147,
+    "total nodes expanded": 3934,
+    "total nodes generated": 8425
+  },
+  "tiles :: wastar -wt 3": {
+    "final sol cost": 78.0,
+    "final sol length": 79,
+    "total nodes expanded": 17390,
+    "total nodes generated": 36050
+  },
+  "traffic :: astar": {
+    "final sol cost": 8.0,
+    "final sol length": 9,
+    "total nodes expanded": 8,
+    "total nodes generated": 30
+  },
+  "traffic :: greedy": {
+    "final sol cost": 8.0,
+    "final sol length": 9,
+    "total nodes expanded": 8,
+    "total nodes generated": 30
+  },
+  "vacuum :: astar": {
+    "final sol cost": 37.0,
+    "final sol length": 38,
+    "total nodes expanded": 813,
+    "total nodes generated": 1784
+  },
+  "vacuum :: greedy": {
+    "final sol cost": 166.0,
+    "final sol length": 167,
+    "total nodes expanded": 329,
+    "total nodes generated": 643
+  }
+}

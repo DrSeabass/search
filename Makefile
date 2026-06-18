@@ -75,6 +75,18 @@ tests: $(TESTS)
 	@echo $@
 	@./dep.sh $(CC) $(shell dirname $*) $(CFLAGS) $*.c > $@
 
+# Performance-regression baseline: runs standard algorithms on small,
+# fixed-seed instances across the working domains and diffs deterministic
+# metrics against regression/golden.json. See regression/README.md.
+# PHONY because a directory named regression/ exists.
+.PHONY: regression regression-update
+regression: everything
+	python3 regression/run_regression.py
+
+# Re-bless the golden baseline after an intentional behavior change.
+regression-update: everything
+	python3 regression/run_regression.py --update
+
 clean:
 	rm -f $(CLEAN) $(BINS) $(TMPLS:.hpp=.hpp.gch)
 
