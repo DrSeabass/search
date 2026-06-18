@@ -27,7 +27,7 @@ def make_instance(settings, i):
 def make_instances(settings):
     Path(settings["--out-dir"]).mkdir(parents = True, exist_ok = True)
     random.seed(settings["--seed"])
-    for i in range(1,settings["--count"]):
+    for i in range(1, settings["--count"] + 1):
         make_instance(settings, i)
 
 def get_args():
@@ -51,7 +51,7 @@ def get_args():
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > len(EXPECTED_FLAGS) * 2:
+    if len(sys.argv) > len(EXPECTED_FLAGS) * 2 + 1:
         print(USAGE)
         exit(-1)
     settings = get_args()
