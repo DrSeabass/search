@@ -35,18 +35,20 @@ import re
 import sys
 from pathlib import Path
 
-import instances
-import parser as rdb_parser
-import project
+# Make the shared searchlab package importable (experiments/searchlab).
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from searchlab import instances, project            # noqa: E402
+from searchlab import parser as rdb_parser           # noqa: E402
 
-from lab.experiment import Experiment
-from lab.reports import Attribute, arithmetic_mean, geometric_mean
+from lab.experiment import Experiment                # noqa: E402
+from lab.reports import Attribute, arithmetic_mean, geometric_mean  # noqa: E402
 
 # ----------------------------------------------------------------------------
 # Layout
 # ----------------------------------------------------------------------------
 DIR = Path(__file__).resolve().parent
 REPO = DIR.parents[1]
+SEARCHLAB = Path(instances.__file__).resolve().parent
 NODE = platform.node()
 IS_TETRALITH = bool(re.match(r"tetralith\d+\.nsc\.liu\.se|n\d+", NODE))
 NAISS_ACCOUNT = os.environ.get("TETRALITH_ACCOUNT", "naiss2026-4-694")
@@ -101,7 +103,9 @@ else:
 # ----------------------------------------------------------------------------
 # Generate instances (idempotent), then enumerate them.
 # ----------------------------------------------------------------------------
-instances.generate(INSTANCES_ROOT, INSTANCES_PER_DOMAIN, domains=DOMAINS)
+# This baseline stays small and fast: a single (easiest) size per domain.
+instances.generate(INSTANCES_ROOT, INSTANCES_PER_DOMAIN, domains=DOMAINS,
+                   max_sizes=1)
 
 # ----------------------------------------------------------------------------
 # Build the experiment
@@ -109,7 +113,7 @@ instances.generate(INSTANCES_ROOT, INSTANCES_PER_DOMAIN, domains=DOMAINS)
 exp = Experiment(environment=ENV)
 
 # The stdin shim, shared by every run.
-exp.add_resource("run_solver", str(DIR / "run-solver.sh"))
+exp.add_resource("run_solver", str(SEARCHLAB / "run-solver.sh"))
 
 # One solver binary per domain, added once and referenced by all its runs.
 for domain in DOMAINS:
@@ -129,10 +133,11 @@ for domain in DOMAINS:
                 time_limit=TIME_LIMIT,
                 memory_limit=MEMORY_MB,
             )
+            problem = instances.problem_name(inst)
             run.set_property("domain", domain)
-            run.set_property("problem", inst["id"])
+            run.set_property("problem", problem)
             run.set_property("algorithm", algo_name)
-            run.set_property("id", [algo_name, domain, inst["id"]])
+            run.set_property("id", [algo_name, domain, problem])
             # Surface instance params and limits in the run properties.
             for k, v in inst["params"].items():
                 run.set_property(f"param_{k}", v)

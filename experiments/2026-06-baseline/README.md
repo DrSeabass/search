@@ -15,21 +15,23 @@ cluster (Tetralith).
 ## Why generic Lab (not FastDownwardExperiment)
 
 The suite has no PDDL translate/preprocess pipeline, so this drives the generic
-`lab.experiment` layer (`Experiment` + `Run`) directly. The only suite-specific
-glue is:
+`lab.experiment` layer (`Experiment` + `Run`) directly. The suite-specific glue
+lives in the shared [`../searchlab/`](../searchlab/) package, reused by every
+experiment here:
 
-- [`run-solver.sh`](run-solver.sh) — a stdin shim. The solvers read their
-  instance from stdin (`cat inst | solver alg args`), which Lab's no-shell
+- [`run-solver.sh`](../searchlab/run-solver.sh) — a stdin shim. The solvers read
+  their instance from stdin (`cat inst | solver alg args`), which Lab's no-shell
   `add_command` can't express, so each run calls this instead.
-- [`parser.py`](parser.py) — turns the solver's RDB `#pair` output (captured by
-  Lab in `run.log`) into Lab attributes (`cost`, `expansions`, `generated`,
-  `coverage`, ...). Self-contained so it works on remote nodes.
-- [`instances.py`](instances.py) — generates a reproducible instance set into a
-  `key_file` directory hierarchy from the suite's seeded generators, and walks
-  that hierarchy to feed runs.
-- [`project.py`](project.py) — framework-agnostic Lab helpers (cluster-aware
-  environments, report helpers), trimmed from the Fast Downward / Scorpion
-  `project.py` so the two suites share one analysis style.
+- [`parser.py`](../searchlab/parser.py) — turns the solver's RDB `#pair` output
+  (captured by Lab in `run.log`) into Lab attributes (`cost`, `expansions`,
+  `generated`, `coverage`, ...). Self-contained so it works on remote nodes.
+- [`instances.py`](../searchlab/instances.py) — generates a reproducible
+  instance set into a `key_file` directory hierarchy from the suite's seeded
+  generators, and walks that hierarchy to feed runs. This baseline uses a single
+  (easiest) size per domain (`max_sizes=1`) to stay fast.
+- [`project.py`](../searchlab/project.py) — framework-agnostic Lab helpers
+  (cluster-aware environments, report helpers), trimmed from the Fast Downward /
+  Scorpion `project.py` so the two suites share one analysis style.
 
 ## Setup
 
