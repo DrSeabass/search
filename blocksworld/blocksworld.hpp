@@ -186,14 +186,14 @@ public:
 #ifndef DEEP
                 int stacks = 0;
                 int tabled = 0;
-                for(int i = 0; i< Nblocks; i++){
+                for(int i = 0; i< (int) b.nblocks; i++){
                     if(s.above[i] == 0 && s.below[i] != 0) stacks++;
                     else if(s.above[i] == 0) tabled++;
                 }
                 n = tabled * (stacks + tabled -1) + stacks * (stacks + tabled);
                 int * tops = new int[stacks+tabled];
                 int pos = 0;
-                for(int i = 0; i< Nblocks; i++){
+                for(int i = 0; i< (int) b.nblocks; i++){
                     if(s.above[i] == 0) {
                         tops[pos] = i;
                         pos++;
@@ -215,13 +215,13 @@ public:
                 int stacks = 0;
                 Block hand = 0;
                 int i;
-                for(i = 0; i < Nblocks; i++){
+                for(i = 0; i < (int) b.nblocks; i++){
                     if(s.above[i] == 0) stacks++;
                     if(s.below[i] == i+1) hand = i+1;
                 }
                 int *tops = new int[stacks];
                 int pos = 0;
-                for(i = 0; i < Nblocks; i++){
+                for(i = 0; i < (int) b.nblocks; i++){
                     if(s.above[i] == 0 && s.below[i] != i+1){
                         tops[pos] = i;
                         pos++;
@@ -366,6 +366,9 @@ public:
 
 	Cost pathcost(const std::vector<State>&, const std::vector<Oper>&);
 private:
+    // Number of blocks in the loaded instance (<= Nblocks, the compiled-in
+    // capacity). Loops over real blocks use this; array sizes use the enum.
+    unsigned int nblocks = Nblocks;
     Block init[Nblocks];
     Block goal[Nblocks];
 #ifdef DEEP

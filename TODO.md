@@ -1,10 +1,20 @@
 # Bugs
 
+None known as of now.
+
+## Fixed
+
 * blocksworld: intermittent assertion failure in `Blocksworld::pathcost`
-  (blocksworld/blocksworld.cc:64, `e.state.eq(this, path[i])`). Data-dependent —
-  reproduces on some generated instances (e.g. `make_instances.py -b 6 -ss 2 -sg 3`
-  on certain seeds), not others. Disqualifies blocksworld from the regression
-  baseline until fixed.
+  (`e.state.eq(this, path[i])`). Root cause: the constructor declared a local
+  `unsigned int Nblocks` that shadowed the class enum `Nblocks` (== NBLOCKS), so
+  `movelibrary` was populated using the *instance's* block count as its stride
+  while `getmoveref()` indexed it using the *enum* — the strides disagreed, so
+  `movelibrary[getmoveref(...)]` returned the wrong move (and a bogus reverse op),
+  corrupting both moves and their inverses. Also left `init[]`/`goal[]` beyond the
+  instance count uninitialized. Fixed by reading the instance count into a member
+  `nblocks`, zero-initializing unused entries, validating the count against the
+  compiled capacity, populating `movelibrary` at the enum stride, and bounding the
+  operator generator by `nblocks`. blocksworld now solves reliably across sizes.
 
 ## Possible Bugs
 
