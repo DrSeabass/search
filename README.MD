@@ -33,8 +33,14 @@ across the working domains:
   **Downward Lab study** showing how to run an empirical evaluation here:
   reproducible instance sets, Lab-owned time/memory limits, and
   `AbsoluteReport` + scatter-plot output, runnable locally or on Tetralith.
+* [experiments/2026-06-visualization/](./experiments/2026-06-visualization/) — a
+  **visualization study**: greedy, a weighted-A\* sweep, and ARA\* over ~100
+  instances/domain, with metric cross-product scatter plots and anytime
+  profiles drawn from Lab's `properties` file.
 
-Both are documented in their own READMEs.
+The Lab experiments share the [experiments/searchlab/](./experiments/searchlab/)
+package (environments, RDB parser, stdin shim, instance generator). All are
+documented in their own READMEs.
 
 # Domains
 

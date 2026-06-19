@@ -15,8 +15,22 @@ parsing rules match rdb_to_json.py's: try int, then float, else keep the string.
 """
 
 import re
+import shlex
 
 from lab.parser import Parser
+
+# Anytime `incumbent` table column -> (list-valued attribute, type). The
+# improving-incumbent trajectory (e.g. from ARA*) is captured as parallel lists
+# so a (wall time, cost) anytime profile can be plotted. Lab supports
+# list-valued properties; this keeps the trajectory on the standard properties
+# path rather than in a side file.
+INCUMBENT_MAP = {
+    "incumbent wall time": ("incumbent_wall_time", float),
+    "incumbent solution cost": ("incumbent_cost", float),
+    "incumbent nodes expanded": ("incumbent_expansions", int),
+    "incumbent nodes generated": ("incumbent_generated", int),
+    "incumbent weight": ("incumbent_weight", float),
+}
 
 # RDB key -> (Lab attribute, type). Only scalars we report on.
 SCALAR_MAP = {
@@ -58,6 +72,43 @@ def parse_pairs(content, props):
             props[attr] = value
 
 
+def parse_incumbent(content, props):
+    """Capture the anytime `incumbent` table into parallel list properties.
+
+    Reads `#altcols "incumbent" ...` for the column order and the following
+    `#altrow "incumbent" ...` rows for the trajectory. Only emitted by anytime
+    algorithms (e.g. ARA*); for everything else this is a no-op.
+    """
+    columns = None
+    rows = []
+    for line in content.splitlines():
+        s = line.strip()
+        if not (s.startswith("#altcols") or s.startswith("#altrow")):
+            continue
+        try:
+            toks = shlex.split(s)
+        except ValueError:
+            continue
+        if len(toks) < 2 or toks[1] != "incumbent":
+            continue
+        if toks[0] == "#altcols":
+            columns = toks[2:]
+        elif toks[0] == "#altrow" and columns is not None:
+            cells = toks[2:]
+            if len(cells) == len(columns):
+                rows.append(cells)
+
+    if not columns or not rows:
+        return
+    for col_idx, col in enumerate(columns):
+        if col not in INCUMBENT_MAP:
+            continue
+        attr, typ = INCUMBENT_MAP[col]
+        series = [_coerce(row[col_idx], typ) for row in rows]
+        if all(v is not None for v in series):
+            props[attr] = series
+
+
 def derive_coverage(content, props):
     """coverage = 1 iff the solver returned a real (non-negative) solution cost.
 
@@ -78,6 +129,7 @@ def derive_coverage(content, props):
 def get_parser():
     parser = Parser()
     parser.add_function(parse_pairs, file="run.log")
+    parser.add_function(parse_incumbent, file="run.log")
     parser.add_function(derive_coverage, file="run.log")
     return parser
 

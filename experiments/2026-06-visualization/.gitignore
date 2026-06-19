@@ -1,0 +1,10 @@
+# Reproducible from the seeded generators; regenerated on each run.
+/instances/
+# Lab experiment artifacts (run dirs, eval, reports).
+/data/
+# Generated figures.
+/plots/
+# Local virtualenv.
+/.venv/
+__pycache__/
+*.pyc

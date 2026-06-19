@@ -1,0 +1,9 @@
+[project]
+name = "search-visualization"
+version = "0.1.0"
+description = "Downward Lab visualization study for the heuristic-search suite"
+requires-python = ">=3.10"
+dependencies = [
+    "lab==8.9",
+    "matplotlib>=3.5",
+]
