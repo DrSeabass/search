@@ -25,12 +25,14 @@ Usage:
 import argparse
 import json
 import math
+import re
 import sys
 from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")  # no display needed
 import matplotlib.pyplot as plt  # noqa: E402
+import numpy as np  # noqa: E402
 
 # (attribute, axis label). The metrics we cross-plot.
 METRICS = [
@@ -73,6 +75,39 @@ def _scale_for(values):
 def _domain_colors(domains):
     cmap = plt.get_cmap("tab10")
     return {d: cmap(i % 10) for i, d in enumerate(sorted(domains))}
+
+
+_TRAILING_NUM = re.compile(r"(\d+(?:\.\d+)?)$")
+
+
+def _weight_of(run):
+    """Numeric weight for a run: the 'weight' property if set, else a trailing
+    number parsed from the algorithm name (e.g. 'wastar-2' -> 2.0)."""
+    w = run.get("weight")
+    if isinstance(w, (int, float)):
+        return float(w)
+    m = _TRAILING_NUM.search(run.get("algorithm", ""))
+    return float(m.group(1)) if m else None
+
+
+def _center_interval(values, logscale, confidence=1.96):
+    """Central tendency and 95% CI (center, low, high) for a sample.
+
+    On a log axis we use the geometric mean with the CI computed in log space,
+    so the band is multiplicative and always positive -- appropriate for the
+    positive, heavy-tailed search metrics here (and the convention the Lab
+    reports use for time). On a linear axis we use the arithmetic mean with a
+    normal-approximation CI.
+    """
+    arr = np.asarray(values, dtype=float)
+    if logscale:
+        log = np.log(arr)
+        m = log.mean()
+        half = confidence * log.std(ddof=1) / math.sqrt(arr.size) if arr.size > 1 else 0.0
+        return math.exp(m), math.exp(m - half), math.exp(m + half)
+    m = float(arr.mean())
+    half = confidence * arr.std(ddof=1) / math.sqrt(arr.size) if arr.size > 1 else 0.0
+    return m, m - half, m + half
 
 
 def scatter_matrix(runs, algorithm, outdir):
@@ -163,6 +198,70 @@ def anytime_profiles(runs, algorithm, outdir):
     print(f"  wrote {out}")
 
 
+def weight_trends(runs, outdir):
+    """Mean performance vs weight, with 95% CI bands, one line per domain.
+
+    Uses solved runs that carry a numeric weight (the weighted-A* sweep). One
+    subplot per metric; x is the weight, y is the per-(domain, weight) mean with
+    a shaded 95% confidence interval over the instances solved at that weight.
+    """
+    solved = [r for r in runs if r.get("coverage") == 1
+              and _weight_of(r) is not None]
+    weights = sorted({_weight_of(r) for r in solved})
+    if len(weights) < 2:
+        print("  fewer than 2 weights present; skipping weight trends")
+        return
+
+    domains = sorted({r["domain"] for r in solved})
+    colors = _domain_colors(domains)
+    n = len(METRICS)
+    ncol = min(3, n)
+    nrow = math.ceil(n / ncol)
+    fig, axes = plt.subplots(nrow, ncol, figsize=(5 * ncol, 3.6 * nrow),
+                             squeeze=False)
+
+    for mi, (attr, label) in enumerate(METRICS):
+        ax = axes[mi // ncol][mi % ncol]
+        # Use a log axis (geometric mean) when every value for this metric is
+        # strictly positive, which is the case for all our search metrics.
+        logscale = all(r[attr] > 0 for r in solved if r.get(attr) is not None)
+        for domain in domains:
+            xs, centers, los, his = [], [], [], []
+            for w in weights:
+                vals = [r[attr] for r in solved
+                        if r["domain"] == domain and _weight_of(r) == w
+                        and r.get(attr) is not None]
+                if not vals:
+                    continue
+                c, lo, hi = _center_interval(vals, logscale)
+                xs.append(w); centers.append(c); los.append(lo); his.append(hi)
+            if not xs:
+                continue
+            ax.plot(xs, centers, marker="o", ms=4, color=colors[domain],
+                    label=domain)
+            ax.fill_between(xs, los, his, color=colors[domain], alpha=0.18)
+        ax.set_title(label, fontsize=10)
+        ax.set_xlabel("weight", fontsize=9)
+        if logscale:
+            ax.set_yscale("log")
+        ax.set_xticks(weights)
+        ax.tick_params(labelsize=8)
+
+    for idx in range(n, nrow * ncol):
+        axes[idx // ncol][idx % ncol].axis("off")
+
+    handles = [plt.Line2D([], [], marker="o", color=colors[d], label=d)
+               for d in domains]
+    fig.legend(handles=handles, loc="upper right", title="domain", fontsize=9)
+    fig.suptitle("weighted A*: performance vs weight "
+                 "(geometric mean on log axes, 95% CI; per domain)", fontsize=13)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    out = outdir / "weight_trends.png"
+    fig.savefig(out, dpi=110)
+    plt.close(fig)
+    print(f"  wrote {out}")
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -182,6 +281,9 @@ def main(argv=None):
     for algorithm in ANYTIME_ALGORITHMS:
         if algorithm in by_algo:
             anytime_profiles(by_algo[algorithm], algorithm, outdir)
+
+    # Trends over a weight sequence (e.g. the weighted-A* sweep), if present.
+    weight_trends(runs, outdir)
 
     return 0
 

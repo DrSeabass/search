@@ -53,7 +53,12 @@ def _domains():
 
 
 def run_study(algorithms):
-    """Build and run a Lab experiment for *algorithms* = [(name, argv), ...]."""
+    """Build and run a Lab experiment for *algorithms*.
+
+    Each entry is ``(name, argv)`` or ``(name, argv, extra_props)`` where
+    extra_props is a dict of run properties to attach (e.g. {"weight": 2.0} so
+    downstream plots can trend over the weight sequence).
+    """
     script = Path(sys.argv[0]).resolve()
     exp_dir = script.parent
     instances_root = exp_dir / "instances"
@@ -87,7 +92,9 @@ def run_study(algorithms):
     for domain in domains:
         for inst in instances.enumerate_instances(instances_root / domain):
             problem = instances.problem_name(inst)
-            for algo_name, alg_argv in algorithms:
+            for entry in algorithms:
+                algo_name, alg_argv = entry[0], entry[1]
+                extra_props = entry[2] if len(entry) > 2 else {}
                 run = exp.add_run()
                 run.add_resource("instance", inst["path"], "instance")
                 run.add_command(
@@ -101,6 +108,8 @@ def run_study(algorithms):
                 run.set_property("id", [algo_name, domain, problem])
                 for k, v in inst["params"].items():
                     run.set_property(f"param_{k}", v)
+                for k, v in extra_props.items():
+                    run.set_property(k, v)
                 run.set_property("limit_time", time_limit)
                 run.set_property("limit_memory_mb", memory_mb)
                 num_runs += 1

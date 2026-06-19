@@ -43,6 +43,13 @@ size × ~100 seeds.
 - `anytime_<algorithm>.png` — **anytime profiles** (incumbent cost vs wall time)
   for ARA\*, a subplot per domain, drawn from the `incumbent_*` list properties
   the [parser](../searchlab/parser.py) captures from the `incumbent` table.
+- `weight_trends.png` — **trends over the weight sequence** for the wA\* sweep:
+  one subplot per metric, x = weight, a line per domain showing the geometric
+  mean with a shaded 95% confidence interval (computed in log space, so the
+  band stays positive on the log axes). Shows the weight tradeoff — search
+  effort falls while solution cost/length rise. Produced whenever the data
+  contains ≥2 distinct weights (the weight is read from each run's `weight`
+  property, or parsed from the algorithm name as a fallback).
 
 ## Setup
 

@@ -18,6 +18,9 @@ from searchlab.study import run_study  # noqa: E402
 
 WEIGHTS = [w.strip() for w in os.environ.get("VIZ_WEIGHTS", "1.5,2,3,5").split(",")
            if w.strip()]
-ALGORITHMS = [(f"wastar-{w}", ["wastar", "-wt", w]) for w in WEIGHTS]
+# The numeric weight is attached as a run property so plots.py can trend
+# performance over the weight sequence.
+ALGORITHMS = [(f"wastar-{w}", ["wastar", "-wt", w], {"weight": float(w)})
+              for w in WEIGHTS]
 
 run_study(ALGORITHMS)
