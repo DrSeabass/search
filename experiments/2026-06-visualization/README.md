@@ -40,20 +40,16 @@ size × ~100 seeds.
   log axes where a metric is positive. One per algorithm (so the wA\* sweep
   yields one per weight). This is where you read how runtime relates to solution
   length/cost and to nodes expanded/generated.
-- `anytime_<algorithm>.png` — **anytime profile**: mean solution quality vs wall
-  time with a 95% CI band, averaged over instances, a subplot per domain. Raw
-  incumbent costs differ by orders of magnitude across instances, so each is
-  normalized to its own converged best (quality = best/in-hand ∈ (0,1]) before
-  averaging. Built from the `incumbent_*` list properties the
-  [parser](../searchlab/parser.py) captures.
 - `anytime_convergence.png` — **normalized anytime convergence**, a subplot per
   domain, a line per algorithm. y(t) is the mean over instances of
   `best_cost / cost_in_hand(t)`, where `best_cost` is the lowest cost found by
-  *any* algorithm on that instance, so y is in (0, 1] and rises toward 1 as an
-  algorithm reaches the best-known solution. Anytime runs (ARA\*) contribute
-  their whole incumbent trajectory; single-shot runs contribute one step at
-  their finish time. To compare across algorithms, pass several studies'
-  `properties` files at once (see Run).
+  *any* algorithm on that instance (the global optimum in the ideal case), so y
+  is in (0, 1] and rises toward 1 as an algorithm reaches the best-known
+  solution. Anytime runs (ARA\*) contribute their whole incumbent trajectory;
+  single-shot runs contribute one step at their finish time; the
+  `incumbent_*` trajectory comes from the [parser](../searchlab/parser.py). To
+  compare across algorithms, pass several studies' `properties` files at once
+  (see Run).
 - `weight_trends.png` — **trends over the weight sequence** for the wA\* sweep:
   one subplot per metric, x = weight, a line per domain showing the geometric
   mean with a shaded 95% confidence interval (computed in log space, so the
