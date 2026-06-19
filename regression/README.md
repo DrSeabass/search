@@ -65,13 +65,10 @@ the Lab study, under controlled resource limits.
 ## Working-domain set
 
 Included: `tiles`, `gridnav`, `vacuum`, `drobot`, `synth_tree`, `traffic`,
-`pancake`.
+`pancake`, `blocksworld`.
 
 Excluded (see [`../TODO.md`](../TODO.md)):
 
-- **blocksworld** — intermittent assertion failure in `Blocksworld::pathcost`
-  ([blocksworld/blocksworld.cc:64](../blocksworld/blocksworld.cc)) on some
-  generated instances.
 - **segments** — no instance has been observed to solve; generator CLI is also
   broken.
 - **visnav** — flagged as segfaulting.
@@ -89,3 +86,7 @@ Excluded (see [`../TODO.md`](../TODO.md)):
 - **vacuum**: run with `--chargers 0`; a charge operator currently stalls the
   search.
 - **pancake**: A\* on 50 cakes is heavy, so greedy and wA\* are used.
+- **blocksworld**: a 10-block instance (`-b 10 -ss 3 -sg 3`) keeps optimal A\*
+  fast. Reproducible via the `--seed` flag added to its generator. (The
+  `Blocksworld::pathcost` corruption bug that previously excluded it is fixed;
+  see [`../TODO.md`](../TODO.md).)

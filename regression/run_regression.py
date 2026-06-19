@@ -141,6 +141,13 @@ def gen_pancake(workdir, seed):
     return d / "1"
 
 
+def gen_blocksworld(workdir, seed):
+    f = workdir / "bw.txt"
+    _run([sys.executable, REPO / "blocksworld/make_instances.py",
+          "-b", "10", "-ss", "3", "-sg", "3", "--seed", str(seed), "-f", str(f)])
+    return f
+
+
 # --- The regression matrix ----------------------------------------------------
 # Working domains only (blocksworld/segments/visnav/plat2d are excluded; see
 # TODO.md and regression/README.md). Algorithms are chosen to be fast and to
@@ -176,6 +183,10 @@ DOMAINS = [
         "name": "pancake", "solver": "pancake/50pancake_solver", "gen": gen_pancake, "seed": 7,
         # A* on 50 cakes is heavy; greedy/wA* are the standard satisficing runs.
         "algs": [["greedy"], ["wastar", "-wt", "3"]],
+    },
+    {
+        "name": "blocksworld", "solver": "blocksworld/20bw_solver", "gen": gen_blocksworld, "seed": 42,
+        "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"]],
     },
 ]
 

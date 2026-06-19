@@ -1,4 +1,22 @@
 {
+  "blocksworld :: astar": {
+    "final sol cost": 13.0,
+    "final sol length": 14,
+    "total nodes expanded": 103,
+    "total nodes generated": 1153
+  },
+  "blocksworld :: greedy": {
+    "final sol cost": 13.0,
+    "final sol length": 14,
+    "total nodes expanded": 24,
+    "total nodes generated": 337
+  },
+  "blocksworld :: wastar -wt 2": {
+    "final sol cost": 13.0,
+    "final sol length": 14,
+    "total nodes expanded": 69,
+    "total nodes generated": 869
+  },
   "drobot :: astar": {
     "final sol cost": 5.884319,
     "final sol length": 22,

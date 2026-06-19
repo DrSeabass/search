@@ -67,11 +67,15 @@ if __name__=="__main__":
     argParser.add_argument('-f', type = str, help = "Name of input file/name of new puzzle")
     argParser.add_argument('-ss', type = int, help = "Number of stacks in the start puzzle.")
     argParser.add_argument('-sg', type = int, help = "Number of stacks in the goal state.")
+    argParser.add_argument('--seed', type = int, default = None,
+                           help = "RNG seed for reproducible instances.")
     arguments = argParser.parse_args()
 
     problem = "generatedProblem.txt"
     blocks = 9
 
+    if arguments.seed is not None:
+        random.seed(arguments.seed)
     if arguments.b!=None:
         blocks = int(arguments.b)
     if arguments.f != None:
