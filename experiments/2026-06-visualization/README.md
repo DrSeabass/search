@@ -13,9 +13,18 @@ plotting is a thin consumer on top.
 
 ## What it runs
 
-- **greedy** best-first search
-- **weighted A\*** at several weights (default `1.5, 2, 3, 5`)
-- **ARA\*** (anytime weighted A\*), which emits an improving-incumbent trajectory
+Three independent scripts, one per algorithm family, sharing the same instances,
+parser, and plotting (all via [`run_study`](../searchlab/study.py)):
+
+- [`2026-06-19-A-greedy.py`](2026-06-19-A-greedy.py) — **greedy** best-first search
+- [`2026-06-19-B-wastar.py`](2026-06-19-B-wastar.py) — **weighted A\*** at several
+  weights (`VIZ_WEIGHTS`, default `1.5,2,3,5`)
+- [`2026-06-19-C-anytime.py`](2026-06-19-C-anytime.py) — **ARA\*** (anytime
+  weighted A\*), which emits an improving-incumbent trajectory
+
+Each is its own Lab experiment (own `data/<script>/` and `-eval/`), but they
+share the generated `instances/` directory (generation is idempotent, so only
+the first run pays for it) and all write figures into the shared `plots/`.
 
 Instances are swept across sizes for a difficulty spread (see
 [`../searchlab/instances.py`](../searchlab/instances.py)): parametric domains use
@@ -49,22 +58,29 @@ Build the solvers first (repo root): `make everything`.
 
 ## Run
 
-```sh
-./2026-06-19-A-visualization.py --all        # build, run, parse, fetch, report, plots
-```
-
-The `plots` step runs `plots.py` on the fetched `properties` automatically
-(locally). You can also redraw figures without re-running the experiment:
+Run each script with `--all` (build, run, parse, fetch, report, plots):
 
 ```sh
-python plots.py data/2026-06-19-A-visualization-eval/properties -o plots
+./2026-06-19-A-greedy.py --all
+./2026-06-19-B-wastar.py --all
+./2026-06-19-C-anytime.py --all
 ```
 
-A quick local subset:
+Each script's `plots` step runs `plots.py` on its own fetched `properties`,
+writing to the shared `plots/`. You can also redraw figures for any one study
+without re-running it:
+
+```sh
+python plots.py data/2026-06-19-A-greedy-eval/properties -o plots
+```
+
+A quick local subset (just two domains, a handful of instances):
 
 ```sh
 VIZ_DOMAINS=gridnav,drobot VIZ_INSTANCES_PER_DOMAIN=10 VIZ_TIME_LIMIT=10 \
-VIZ_WEIGHTS=2,3 ./2026-06-19-A-visualization.py --all
+  ./2026-06-19-A-greedy.py --all
+VIZ_DOMAINS=gridnav,drobot VIZ_INSTANCES_PER_DOMAIN=10 VIZ_TIME_LIMIT=10 \
+  ./2026-06-19-C-anytime.py --all
 ```
 
 ## Scope
