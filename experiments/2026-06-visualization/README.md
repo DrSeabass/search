@@ -43,6 +43,14 @@ size × ~100 seeds.
 - `anytime_<algorithm>.png` — **anytime profiles** (incumbent cost vs wall time)
   for ARA\*, a subplot per domain, drawn from the `incumbent_*` list properties
   the [parser](../searchlab/parser.py) captures from the `incumbent` table.
+- `anytime_convergence.png` — **normalized anytime convergence**, a subplot per
+  domain, a line per algorithm. y(t) is the mean over instances of
+  `best_cost / cost_in_hand(t)`, where `best_cost` is the lowest cost found by
+  *any* algorithm on that instance, so y is in (0, 1] and rises toward 1 as an
+  algorithm reaches the best-known solution. Anytime runs (ARA\*) contribute
+  their whole incumbent trajectory; single-shot runs contribute one step at
+  their finish time. To compare across algorithms, pass several studies'
+  `properties` files at once (see Run).
 - `weight_trends.png` — **trends over the weight sequence** for the wA\* sweep:
   one subplot per metric, x = weight, a line per domain showing the geometric
   mean with a shaded 95% confidence interval (computed in log space, so the
@@ -79,6 +87,18 @@ without re-running it:
 
 ```sh
 python plots.py data/2026-06-19-A-greedy-eval/properties -o plots
+```
+
+For cross-algorithm figures — notably `anytime_convergence.png`, whose
+normalizer is the best cost found by *any* algorithm — pass several studies'
+`properties` files at once so the plot sees every algorithm's runs:
+
+```sh
+python plots.py \
+  data/2026-06-19-A-greedy-eval/properties \
+  data/2026-06-19-B-wastar-eval/properties \
+  data/2026-06-19-C-anytime-eval/properties \
+  -o plots
 ```
 
 A quick local subset (just two domains, a handful of instances):

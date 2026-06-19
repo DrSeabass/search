@@ -47,15 +47,23 @@ ANYTIME_ALGORITHMS = ["arastar"]
 MAX_TRAJECTORIES_PER_DOMAIN = 25
 
 
-def load_properties(path):
-    """Accept either the properties file or the -eval dir containing it."""
-    path = Path(path)
-    if path.is_dir():
-        path = path / "properties"
-    with open(path) as f:
-        data = json.load(f)
-    # Lab stores {run_id: {props}}.
-    return list(data.values())
+def load_properties(paths):
+    """Load and merge one or more Lab `properties` files (or -eval dirs).
+
+    Merging several studies' properties lets cross-algorithm figures (e.g. the
+    anytime-convergence plot, whose normalizer is the best cost found by *any*
+    algorithm on an instance) see every algorithm's runs.
+    """
+    if isinstance(paths, (str, Path)):
+        paths = [paths]
+    merged = {}
+    for path in paths:
+        path = Path(path)
+        if path.is_dir():
+            path = path / "properties"
+        with open(path) as f:
+            merged.update(json.load(f))  # Lab stores {run_id: {props}}
+    return list(merged.values())
 
 
 def _runs_by(runs, key):
@@ -198,6 +206,103 @@ def anytime_profiles(runs, algorithm, outdir):
     print(f"  wrote {out}")
 
 
+def _run_events(run):
+    """Sorted (time, cost) events for a run = the solutions it held over time.
+
+    Anytime runs contribute their whole incumbent trajectory; single-shot runs
+    contribute one event at their finish time. Returns [] if never solved.
+    """
+    if run.get("incumbent_cost") and run.get("incumbent_wall_time"):
+        ev = list(zip(run["incumbent_wall_time"], run["incumbent_cost"]))
+        return sorted(ev)
+    if run.get("coverage") == 1 and run.get("cost") is not None \
+            and run.get("solver_wall_time") is not None:
+        return [(run["solver_wall_time"], run["cost"])]
+    return []
+
+
+def _cost_in_hand(events, t):
+    """Cost of the best solution held at time t (None if none yet)."""
+    best = None
+    for time, cost in events:           # events sorted ascending by time
+        if time > t:
+            break
+        best = cost if best is None else min(best, cost)
+    return best
+
+
+def _run_best_cost(events):
+    return min((c for _, c in events), default=None)
+
+
+def anytime_convergence(runs, outdir):
+    """Normalized anytime convergence: quality = best-known / cost-in-hand vs t.
+
+    For each instance the normalizer is the best (lowest) solution cost found by
+    *any* algorithm. For each algorithm we plot the mean over instances of
+    best_cost / (cost the algorithm holds at time t), so y is in (0, 1] and
+    rises toward 1 as the algorithm reaches the best-known solution. One subplot
+    per domain, one line per algorithm.
+    """
+    events = {id(r): _run_events(r) for r in runs}
+    best = {}
+    for r in runs:
+        bc = _run_best_cost(events[id(r)])
+        if bc is None:
+            continue
+        key = (r["domain"], r.get("problem"))
+        best[key] = bc if key not in best else min(best[key], bc)
+    if not best:
+        print("  no solved instances; skipping anytime convergence")
+        return
+
+    by_domain = _runs_by([r for r in runs
+                          if (r["domain"], r.get("problem")) in best], "domain")
+    domains = sorted(by_domain)
+    ncol = min(3, len(domains))
+    nrow = math.ceil(len(domains) / ncol)
+    fig, axes = plt.subplots(nrow, ncol, figsize=(5 * ncol, 3.6 * nrow),
+                             squeeze=False)
+
+    for idx, domain in enumerate(domains):
+        ax = axes[idx // ncol][idx % ncol]
+        druns = by_domain[domain]
+        all_times = [tm for r in druns for tm, _ in events[id(r)] if tm > 0]
+        if not all_times:
+            ax.axis("off")
+            continue
+        tgrid = np.logspace(math.log10(min(all_times)),
+                            math.log10(max(all_times)), 60)
+        for algo, rs in sorted(_runs_by(druns, "algorithm").items()):
+            ys = []
+            for t in tgrid:
+                qs = []
+                for r in rs:
+                    key = (domain, r["problem"])
+                    cih = _cost_in_hand(events[id(r)], t)
+                    qs.append(best[key] / cih if cih else 0.0)
+                ys.append(np.mean(qs) if qs else np.nan)
+            ax.plot(tgrid, ys, label=algo, linewidth=1.3)
+        ax.set_xscale("log")
+        ax.set_ylim(0, 1.05)
+        ax.set_title(domain, fontsize=10)
+        ax.set_xlabel("wall time (s)", fontsize=8)
+        ax.set_ylabel("quality = best / in-hand", fontsize=8)
+        ax.tick_params(labelsize=7)
+        ax.legend(fontsize=6, loc="lower right")
+
+    for idx in range(len(domains), nrow * ncol):
+        axes[idx // ncol][idx % ncol].axis("off")
+
+    fig.suptitle("anytime convergence: mean solution quality vs wall time "
+                 "(1.0 = best found by any algorithm)", fontsize=13)
+    fig.tight_layout(rect=[0, 0, 1, 0.96])
+    out = outdir / "anytime_convergence.png"
+    fig.savefig(out, dpi=110)
+    plt.close(fig)
+    print(f"  wrote {out}")
+
+
 def weight_trends(runs, outdir):
     """Mean performance vs weight, with 95% CI bands, one line per domain.
 
@@ -265,7 +370,9 @@ def weight_trends(runs, outdir):
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("properties", help="path to the Lab `properties` file or -eval dir")
+    ap.add_argument("properties", nargs="+",
+                    help="one or more Lab `properties` files or -eval dirs; "
+                         "pass several studies to compare algorithms")
     ap.add_argument("-o", "--outdir", default="plots", help="output directory")
     args = ap.parse_args(argv)
 
@@ -284,6 +391,9 @@ def main(argv=None):
 
     # Trends over a weight sequence (e.g. the weighted-A* sweep), if present.
     weight_trends(runs, outdir)
+
+    # Normalized anytime convergence across all algorithms present.
+    anytime_convergence(runs, outdir)
 
     return 0
 
