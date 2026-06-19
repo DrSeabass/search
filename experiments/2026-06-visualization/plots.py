@@ -14,12 +14,17 @@ Two kinds of figure:
      domain. Log axes are used when a metric is strictly positive. This shows,
      e.g., how runtime correlates with solution length / cost / search effort.
 
-  2. Anytime profiles, one PNG, a subplot per domain. For ARA* it draws each
-     instance's improving-incumbent trajectory (solution cost vs wall time) as a
-     step line, from the incumbent_* list properties the parser captured.
+  2. Anytime profiles, one PNG, a subplot per domain. For ARA* it draws the mean
+     solution quality vs wall time with a 95% CI band, averaged over instances.
+     Each instance is normalized to its own converged best, so quality is in
+     (0, 1] and comparable across instances. Built from the incumbent_* list
+     properties the parser captured.
+
+  3. Weight trends and anytime convergence (see weight_trends / anytime_
+     convergence below).
 
 Usage:
-    python plots.py <properties-file-or-eval-dir> -o <output-dir>
+    python plots.py <properties-file-or-eval-dir> [more ...] -o <output-dir>
 """
 
 import argparse
@@ -44,7 +49,6 @@ METRICS = [
 ]
 
 ANYTIME_ALGORITHMS = ["arastar"]
-MAX_TRAJECTORIES_PER_DOMAIN = 25
 
 
 def load_properties(paths):
@@ -167,13 +171,22 @@ def scatter_matrix(runs, algorithm, outdir):
 
 
 def anytime_profiles(runs, algorithm, outdir):
-    """Per-domain anytime profiles (incumbent cost vs wall time) for one algo."""
+    """Mean anytime quality vs wall time (95% CI), per domain, for one algorithm.
+
+    Raw incumbent costs can't be averaged across instances (they differ by
+    orders of magnitude), so each instance is normalized to its own converged
+    best: quality(t) = best_self / cost_in_hand(t) in (0, 1], rising to 1 as the
+    algorithm reaches its optimum. We then plot the mean over instances with a
+    95% CI band -- the time-domain analog of the wA* weight-trend plot.
+    """
     have = [r for r in runs if r.get("algorithm") == algorithm
             and r.get("incumbent_wall_time") and r.get("incumbent_cost")]
     if not have:
         print(f"  [{algorithm}] no incumbent trajectories; skipping anytime profiles")
         return
 
+    ev = {id(r): _run_events(r) for r in have}
+    best = {id(r): _run_best_cost(ev[id(r)]) for r in have}
     by_domain = _runs_by(have, "domain")
     domains = sorted(by_domain)
     ncol = min(3, len(domains))
@@ -183,22 +196,39 @@ def anytime_profiles(runs, algorithm, outdir):
 
     for idx, domain in enumerate(domains):
         ax = axes[idx // ncol][idx % ncol]
-        for r in by_domain[domain][:MAX_TRAJECTORIES_PER_DOMAIN]:
-            t = r["incumbent_wall_time"]
-            c = r["incumbent_cost"]
-            ax.step(t, c, where="post", alpha=0.4, linewidth=0.8)
-        ax.set_title(domain, fontsize=10)
+        druns = by_domain[domain]
+        times = [t for r in druns for t, _ in ev[id(r)] if t > 0]
+        if not times:
+            ax.axis("off")
+            continue
+        tgrid = np.logspace(math.log10(min(times)), math.log10(max(times)), 60)
+        means, los, his = [], [], []
+        for t in tgrid:
+            qs = []
+            for r in druns:
+                cih = _cost_in_hand(ev[id(r)], t)
+                qs.append(best[id(r)] / cih if cih else 0.0)
+            arr = np.asarray(qs, float)
+            m = float(arr.mean())
+            half = (1.96 * arr.std(ddof=1) / math.sqrt(arr.size)
+                    if arr.size > 1 else 0.0)
+            means.append(m)
+            los.append(max(0.0, m - half))
+            his.append(min(1.0, m + half))
+        ax.plot(tgrid, means, color="tab:blue", linewidth=1.4)
+        ax.fill_between(tgrid, los, his, color="tab:blue", alpha=0.2)
+        ax.set_xscale("log")
+        ax.set_ylim(0, 1.05)
+        ax.set_title(f"{domain} (n={len(druns)})", fontsize=10)
         ax.set_xlabel("wall time (s)", fontsize=8)
-        ax.set_ylabel("incumbent cost", fontsize=8)
-        if all(min(r["incumbent_wall_time"]) > 0 for r in by_domain[domain]):
-            ax.set_xscale("log")
+        ax.set_ylabel("quality = best / in-hand", fontsize=8)
         ax.tick_params(labelsize=7)
 
     for idx in range(len(domains), nrow * ncol):
         axes[idx // ncol][idx % ncol].axis("off")
 
-    fig.suptitle(f"{algorithm}: anytime profiles (up to "
-                 f"{MAX_TRAJECTORIES_PER_DOMAIN} instances/domain)", fontsize=13)
+    fig.suptitle(f"{algorithm}: mean anytime quality vs wall time "
+                 f"(self-normalized, 95% CI)", fontsize=13)
     fig.tight_layout(rect=[0, 0, 1, 0.96])
     out = outdir / f"anytime_{algorithm}.png"
     fig.savefig(out, dpi=110)
