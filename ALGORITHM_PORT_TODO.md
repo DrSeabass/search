@@ -9,6 +9,93 @@ Status legend: **[have]** already in `search/` · **[port]** exists in the
 Fast Downward / Scorpion tree, translate to this suite's `SearchAlgorithm<D>`
 template idiom · **[build]** no implementation on hand.
 
+Cross-repo coordination + deadlines: [`../AAAI_TRIANGLE_PAPER.md`](../AAAI_TRIANGLE_PAPER.md).
+
+## Near-term execution plan (start here — Triangle + Rectangle first)
+
+Goal: get the first cross-suite **batches running before ICAPS travel**. Port the two
+base engines, smoke them, launch a baseline batch — then layer the parameterless
+variants on top. Adaptive/ratchet are deltas on the Triangle engine, so the engine port
+(step A) is the load-bearing step; everything else is mechanical or reuse.
+
+**Burns idiom (confirmed from `beam.hpp` / `main.hpp`):**
+- Algorithms are header-only: `template <class D> struct XSearch : public SearchAlgorithm<D>`
+  in `search/X.hpp`. Define a `Node` with `closedentry/key/setind/getind/pred/prio/tieprio`,
+  parse params from `argc/argv` in the ctor (e.g. `-width`, `-slope`), implement
+  `search(D &d, State &s0)`. Reuse `Pool<Node>`, `closed`, and the open-list helpers
+  `beam.hpp` uses. No PDDL/preferred-operator machinery — the Triangle mechanism is
+  purely search-internal (per-depth open lists keyed h-then-g + an h-trend signal).
+- Register the name in `search/main.hpp`: add `#include "X.hpp"` and an
+  `else if (strcmp(argv[1], "x") == 0) return new XSearch<D>(argc, argv);` branch in
+  `getsearch<D>()`. Domains pick it up for free (each `<domain>/main.cc` includes `main.hpp`).
+- Invocation is stdin-fed: `cat inst | ./<domain>_solver triangle -slope 48`.
+
+**Progress:**
+- **[done 2026-06-22] A + B — Triangle and Rectangle ported, wired, built warning-clean
+  (`-Werror`), and validated crash-free across ALL 8 working domains** (gridnav, vacuum,
+  drobot, traffic, blocksworld, tiles, pancake, synth_tree) via the Lab study in
+  `experiments/2026-06-aaai-triangle/`. `search/triangle.hpp`, `search/rectangle.hpp`;
+  dispatch names `triangle` / `rectangle` in `search/main.hpp`.
+  - **Two bugs found and fixed during bring-up:**
+    1. *Anytime convergence:* originally only recorded the incumbent when the goal was
+       reached as a *new* node, so re-reaching it more cheaply never improved the bound
+       (Triangle stuck at a suboptimal cost). Fixed to check the goal for **every**
+       retained successor (new / reopened / re-seen open), matching Scorpion. Anytime
+       Triangle now converges to optimal (verified on blocksworld 9→6, pancake 54→49).
+    2. *In-place-edge path corruption (pancake, synth_tree):* those domains define
+       `PackedState == State`, `unpack()` returns a reference to the node's own stored
+       state, and `Edge` applies the operator **in place** (undone on destruction). So
+       calling `solpath()` while the `Edge` was live read mutated ancestor states and
+       tripped `pathcost`'s assertion. Fixed by deferring `solpath`/incumbent handling
+       until after `considerkid` returns (Edge destructed). `beam` sidesteps this by
+       only detecting goals on pop. **Rule for any new algorithm here: never trace the
+       path while an `Edge` is in scope.**
+  - **Pre-existing suite issue (NOT ours):** `beam` crashes on `drobot`
+    ("Updating an invalid heap index"). Surfaces as the only crash-error in the batch.
+  Original quick checks retained below:
+  - tiles seed-42 4×4: A\* optimal = 53. `triangle` (slope 1) = 63 @ 3029 exp;
+    `rectangle -width 100 -aspect 1` = 53 @ 602k exp; `-width 10 -aspect 5` = 55 @ 25k;
+    `-width 3 -aspect 3` = 57 @ 11k. Clean width→quality/speed tradeoff.
+  - `triangle -anytime` emits the `#altcols/#altrow "incumbent"` profile table the RDB
+    parser reads, converges to optimal on a small grid, and terminates gracefully.
+  - **Operational gotcha:** anytime `triangle` retains all closed nodes; on big
+    instances it grows unbounded. `main.hpp`'s `bad_alloc` handler *clears* `res.path`,
+    so "final sol cost" reports −1 on OOM — but the `#altrow` incumbents already printed
+    survive (that's the anytime data). **Always pass `-mem <cap>` and `-walltime <s>`**
+    to every Burns run; an unbounded anytime run will swap the box. Rectangle is
+    width-bounded and does not have this growth.
+  - Defaults match Scorpion: `triangle` slope=1, reopen on, anytime off
+    (`-slope N`, `-anytime`, `-noreopen`); `rectangle` width=100, aspect=1
+    (`-width N`, `-aspect N`). Rectangle is first-solution only (no anytime/reopen),
+    matching the reference.
+  - Follow-up (not blocking the batch): add golden-number rows to `regression/`.
+
+**Steps:**
+
+- **A. Port Triangle (static slope) → `search/triangle.hpp`.** Translate
+  `triangle_search.cc` from Scorpion. Map FD's `EvaluationContext`/per-layer open lists
+  onto a vector of Burns open lists keyed (h, then g); reproduce the cascade /
+  layer-extension logic (`609cffb2a`/`a2444a2d7` in Scorpion: extend the deque lazily,
+  drain ineligible entries, break the cascade on a missing layer). Param: `-slope`.
+  Wire dispatch name `triangle`.
+- **B. Port Rectangle → `search/rectangle.hpp`.** The ablation (Triangle minus
+  per-iteration deepening); easier given A. Confirm the two int option names
+  (width/aspect) and expose as `-width` / `-aspect`. Wire dispatch name `rectangle`.
+- **C. Smoke-test.** Build the domain solvers (`make`), run both on a few
+  tiles / pancake / blocksworld instances; sanity-check solution cost vs `astar`/`greedy`
+  and confirm anytime output (`#altcols "incumbent"`). Add a golden-number row to
+  `regression/` per the README's smoke-test convention.
+- **D. First Lab batch.** Reuse `experiments/searchlab/` (Lab `Experiment`+`Run`, the
+  `run-solver.sh` stdin shim, the RDB parser). Configs: `triangle` (slope sweep
+  {1,2,4,8,16,32,48,64}), `rectangle`, plus existing baselines `greedy`, `wastar`,
+  `beam`, `arastar`. Same time/memory limits as the FD side. Launch on Tetralith — this
+  is the batch to get running before travel. The slope sweep doubles as the **headline
+  figure** check (does best static slope vary by domain?).
+- **E. Layer the variants.** Once A–D are green, add `adaptive_triangle` and
+  `ratchet_triangle` as deltas on the Triangle engine (steps 3–4 below), plus the
+  `lift_floor` flag (step 5), and re-launch the batch with the parameterless configs
+  and ANA\* once it exists here.
+
 ## Sequence
 
 ### 1. Triangle engine + variants (the contribution)

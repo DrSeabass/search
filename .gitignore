@@ -57,3 +57,5 @@ traffic/watch
 unknowngridnav/watch
 
 labyrinth/*
+experiments/*/data
+experiments/*/instances
