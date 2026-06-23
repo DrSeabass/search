@@ -1,10 +1,12 @@
 {
+  "gridnav :: adaptive_triangle": 0.448,
   "gridnav :: beam": 1.0,
-  "gridnav :: rectangle_a50": 0.6102,
-  "gridnav :: rectangle_w10": 0.6711,
-  "gridnav :: rectangle_w100": 0.4673,
-  "gridnav :: triangle_s50": 0.6276,
-  "gridnav :: triangle_s8": 0.488,
+  "gridnav :: ratchet_triangle": 0.4446,
+  "gridnav :: rectangle_a50": 0.5897,
+  "gridnav :: rectangle_w10": 0.6045,
+  "gridnav :: rectangle_w100": 0.5138,
+  "gridnav :: triangle_s50": 0.5278,
+  "gridnav :: triangle_s8": 0.4851,
   "pancake :: beam": 1.0,
-  "pancake :: rectangle_w30": 0.7458
+  "pancake :: rectangle_w30": 0.8051
 }

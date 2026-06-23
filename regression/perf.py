@@ -109,6 +109,12 @@ PROBES = [
      "triangle_s50", ["triangle", "-slope", "50"], 300000),
     ("gridnav", "gridnav/gridnav_solver", gen_gridnav_hard, 3, False,
      "rectangle_a50", ["rectangle", "-width", "10", "-aspect", "50"], 300000),
+    # The self-configuring variants share the engine; these guard that their
+    # dynamic-slope bookkeeping doesn't regress per-node throughput.
+    ("gridnav", "gridnav/gridnav_solver", gen_gridnav_hard, 3, False,
+     "adaptive_triangle", ["adaptive_triangle"], 300000),
+    ("gridnav", "gridnav/gridnav_solver", gen_gridnav_hard, 3, False,
+     "ratchet_triangle", ["ratchet_triangle"], 300000),
     # pancake: high branching (b=49) -> exposes any per-successor open-list cost.
     ("pancake", "pancake/50pancake_solver", gen_pancake_hard, 7, True,
      "beam", ["beam", "-width", "100"], 50000),

@@ -100,6 +100,17 @@ variants on top. Adaptive/ratchet are deltas on the Triangle engine, so the engi
     slow), plus `beam` on drobot and `arastar` on blocksworld to lock in the two bug
     fixes. `golden.json` re-blessed (36 runs, ~13s, deterministic; `make regression`
     passes). Anytime mode is deliberately excluded from regression (unbounded/slow).
+  - **[done 2026-06-23] Sequence items 3–5: the parameterless variants.** Extracted the
+    shared engine into `triangle_engine.hpp` (`TriangleEngine<D>` base + virtual
+    `cascade()`); `triangle` is now a thin subclass (behavior unchanged — regression
+    matches). Added `adaptive_triangle` (budget-driven dive depth; `-penalty N`,
+    default 1, 0 = parameterless) and `ratchet_triangle` (slope doubles/halves by
+    per-step h-trend; `-slope` initial). Both carry the Direction-B `-liftfloor` knob
+    (adaptive also `-floorproxy informedness|layers_added`). Both converge to the
+    optimum with `-anytime` (verified: drobot 5.884319, tiles 53). Added to the
+    correctness regression (56 runs; drobot `-anytime` rows for all four pinned at the
+    optimum) and the perf suite (10 probes). multi_triangle / lazy_triangle remain ICAPS
+    scope (below).
 
 **Steps:**
 

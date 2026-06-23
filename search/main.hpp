@@ -14,6 +14,8 @@
 #include "dtastar.hpp"
 #include "beam.hpp"
 #include "triangle.hpp"
+#include "ratchet_triangle.hpp"
+#include "adaptive_triangle.hpp"
 #include "rectangle.hpp"
 #include "bead.hpp"
 #include "beam-mm.hpp"
@@ -110,6 +112,10 @@ template<class D> SearchAlgorithm<D> *getsearch(int argc, const char *argv[]) {
 		return new BeamSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "triangle") == 0)
 		return new TriangleSearch<D>(argc, argv);
+	else if (strcmp(argv[1], "ratchet_triangle") == 0)
+		return new RatchetTriangleSearch<D>(argc, argv);
+	else if (strcmp(argv[1], "adaptive_triangle") == 0)
+		return new AdaptiveTriangleSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "rectangle") == 0)
 		return new RectangleSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "bead") == 0)

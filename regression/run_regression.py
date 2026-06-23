@@ -166,17 +166,17 @@ DOMAINS = [
         "name": "tiles", "solver": "tiles/15md_solver", "gen": gen_tiles, "seed": 1,
         # A* on a random 4x4 is ~5M expansions; use the satisficing baskets here.
         "algs": [["greedy"], ["speedy"], ["wastar", "-wt", "3"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "gridnav", "solver": "gridnav/gridnav_solver", "gen": gen_gridnav, "seed": 42,
         "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "vacuum", "solver": "vacuum/vacuum_solver", "gen": gen_vacuum, "seed": 42,
         "algs": [["astar"], ["greedy"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "drobot", "solver": "drobot/drobot_solver", "gen": gen_drobot, "seed": 42,
@@ -186,33 +186,35 @@ DOMAINS = [
         # cost equals A*'s optimum (5.884319), so a reopening/anytime regression
         # that stops short of optimal would trip them here.
         "algs": [["astar"], ["greedy"], ["beam", "-width", "100"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"],
                  ["triangle", "-anytime", "-slope", "8"],
-                 ["rectangle", "-anytime", "-width", "10", "-aspect", "5"]],
+                 ["rectangle", "-anytime", "-width", "10", "-aspect", "5"],
+                 ["ratchet_triangle", "-anytime"],
+                 ["adaptive_triangle", "-anytime", "-penalty", "0"]],
     },
     {
         "name": "synth_tree", "solver": "synth_tree/synth_tree_solver", "gen": gen_synth_tree, "seed": 42,
         "algs": [["astar"], ["greedy"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "traffic", "solver": "traffic/traffic_solver", "gen": gen_traffic, "seed": 0,
         "algs": [["astar"], ["greedy"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "pancake", "solver": "pancake/50pancake_solver", "gen": gen_pancake, "seed": 7,
         # A* on 50 cakes is heavy; greedy/wA* are the standard satisficing runs.
         # Rectangle is omitted here: its catch-up schedule is very slow on a
         # depth-~49 problem and would blow the regression's fast-run budget.
-        "algs": [["greedy"], ["wastar", "-wt", "3"], ["triangle", "-slope", "8"]],
+        "algs": [["greedy"], ["wastar", "-wt", "3"], ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"]],
     },
     {
         "name": "blocksworld", "solver": "blocksworld/20bw_solver", "gen": gen_blocksworld, "seed": 42,
         # arastar locks in the unsigned-Cost incumbent-sentinel fix (it expanded
         # 0 nodes here before the fix).
         "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"], ["arastar", "-wt0", "5", "-dwt", "1"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["ratchet_triangle"], ["adaptive_triangle"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
 ]
 
