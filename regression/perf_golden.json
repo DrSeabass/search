@@ -1,8 +1,10 @@
 {
   "gridnav :: beam": 1.0,
-  "gridnav :: rectangle_w10": 0.6158,
-  "gridnav :: rectangle_w100": 0.645,
-  "gridnav :: triangle_s8": 0.5462,
+  "gridnav :: rectangle_a50": 0.534,
+  "gridnav :: rectangle_w10": 0.5752,
+  "gridnav :: rectangle_w100": 0.4964,
+  "gridnav :: triangle_s50": 0.4355,
+  "gridnav :: triangle_s8": 0.483,
   "pancake :: beam": 1.0,
-  "pancake :: rectangle_w30": 0.7728
+  "pancake :: rectangle_w30": 0.7553
 }

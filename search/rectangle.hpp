@@ -19,8 +19,10 @@
 #include "../utils/pool.hpp"
 #include <cstring>
 #include <cstdlib>
+#include <deque>
 #include <queue>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 void fatal(const char *, ...);
@@ -125,7 +127,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 		bool solved = false;
 
 		// Expand the root: its successors seed layer 0.
-		open.push_back(Layer());
+		growback();
 		this->res.expd++;
 		{
 			State buf, &state = d.unpack(buf, n0->state);
@@ -141,7 +143,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 			}
 		}
 		if ((int) open.size() == 1)
-			open.push_back(Layer());
+			growback();
 
 		while (!solved && !this->limit() && hasnonempty())
 			solved = step(d);
@@ -152,6 +154,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 	virtual void reset() {
 		SearchAlgorithm<D>::reset();
 		open.clear();
+		layerpool.clear();
 		closed.clear();
 		depth = 1;
 		delete nodes;
@@ -171,7 +174,7 @@ private:
 
 	bool step(D &d) {
 		if ((int) open.size() == 1)
-			open.push_back(Layer());
+			growback();
 
 		const int initial = (int) open.size();
 		for (int i = 0; i < initial - 1; i++) {
@@ -185,7 +188,7 @@ private:
 			}
 
 			for (int a = 0; a < aspect; a++)
-				open.push_back(Layer());
+				growback();
 
 			const int cur = (int) open.size();
 			for (int j = i + 1; j < cur - 1; j++) {
@@ -227,7 +230,7 @@ private:
 		this->res.expd++;
 
 		while ((int) open.size() <= i + 1)
-			open.push_back(Layer());
+			growback();
 
 		typename D::Operators ops(d, state);
 		for (unsigned int k = 0; k < ops.size(); k++) {
@@ -309,11 +312,30 @@ private:
 		return n;
 	}
 
+	// Append one layer, reusing a recycled (empty, capacity-retaining) layer
+	// from the pool when available rather than allocating a fresh heap + hash
+	// table. Layers turn over every step, so this avoids that churn.
+	void growback() {
+		if (!layerpool.empty()) {
+			open.push_back(std::move(layerpool.back()));
+			layerpool.pop_back();
+		} else {
+			open.emplace_back();
+		}
+	}
+
 	void trim() {
-		while (!open.empty() && open.front().empty())
-			open.erase(open.begin());
-		while (!open.empty() && open.back().empty())
+		// Recycle emptied front/back layers instead of freeing them. open is a
+		// deque, so dropping the front is O(1) (the old vector::erase(begin())
+		// moved every remaining layer down each step).
+		while (!open.empty() && open.front().empty()) {
+			layerpool.push_back(std::move(open.front()));
+			open.pop_front();
+		}
+		while (!open.empty() && open.back().empty()) {
+			layerpool.push_back(std::move(open.back()));
 			open.pop_back();
+		}
 	}
 
 	bool hasnonempty() const {
@@ -329,7 +351,8 @@ private:
 	int depth = 1;
 	Node *goalnode = NULL;
 
-	std::vector<Layer> open;
+	std::deque<Layer> open;
+	std::vector<Layer> layerpool;	// recycled empty layers (retain capacity)
 	unsigned long seqctr = 0;
 	ClosedList<Node, Node, D> closed;
 	Pool<Node> *nodes;

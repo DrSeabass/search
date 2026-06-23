@@ -23,6 +23,7 @@
 #include <cstdlib>
 #include <deque>
 #include <queue>
+#include <utility>
 #include <vector>
 
 void dfrowhdr(FILE *, const char *, unsigned int ncols, ...);
@@ -138,6 +139,10 @@ template <class D> struct TriangleSearch : public SearchAlgorithm<D> {
 		bool done = false;
 		while (!this->limit() && !done) {
 			while (!open.empty() && open.front().empty()) {
+				// Recycle the emptied front layer (keeps its backing vector's
+				// capacity) instead of freeing it; the frontier advances every
+				// step, so this avoids a malloc/free per layer traversed.
+				layerpool.push_back(std::move(open.front()));
 				open.pop_front();
 				--maxactive;
 			}
@@ -188,6 +193,7 @@ template <class D> struct TriangleSearch : public SearchAlgorithm<D> {
 	virtual void reset() {
 		SearchAlgorithm<D>::reset();
 		open.clear();
+		layerpool.clear();
 		closed.clear();
 		maxactive = -1;
 		haveincumbent = false;
@@ -232,10 +238,21 @@ private:
 
 	void insert(int layer, Node *n) {
 		while (layer >= (int) open.size())
-			open.emplace_back();
+			growback();
 		open[layer].push(OpenEntry(n, n->h, n->g));
 		if (layer > maxactive)
 			maxactive = layer;
+	}
+
+	// Append one layer, reusing a recycled (empty, capacity-retaining) layer
+	// from the pool when available rather than allocating a fresh heap.
+	void growback() {
+		if (!layerpool.empty()) {
+			open.push_back(std::move(layerpool.back()));
+			layerpool.pop_back();
+		} else {
+			open.emplace_back();
+		}
 	}
 
 	// Generate one successor. Returns true iff a solution was found and the
@@ -336,6 +353,7 @@ private:
 	bool reopen;
 
 	std::deque<Layer> open;
+	std::vector<Layer> layerpool;	// recycled empty layers (retain capacity)
 	int maxactive = -1;
 
 	bool haveincumbent = false;

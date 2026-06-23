@@ -101,6 +101,14 @@ PROBES = [
      "rectangle_w10", ["rectangle", "-width", "10", "-aspect", "5"], 300000),
     ("gridnav", "gridnav/gridnav_solver", gen_gridnav_hard, 3, False,
      "rectangle_w100", ["rectangle", "-width", "100", "-aspect", "5"], 300000),
+    # High slope / aspect: the active layer band is wide, so layers churn
+    # heavily every step -- this is where per-layer container recycling matters
+    # (without it, throughput degrades as slope grows). slope=48 is the paper's
+    # static reference.
+    ("gridnav", "gridnav/gridnav_solver", gen_gridnav_hard, 3, False,
+     "triangle_s50", ["triangle", "-slope", "50"], 300000),
+    ("gridnav", "gridnav/gridnav_solver", gen_gridnav_hard, 3, False,
+     "rectangle_a50", ["rectangle", "-width", "10", "-aspect", "50"], 300000),
     # pancake: high branching (b=49) -> exposes any per-successor open-list cost.
     ("pancake", "pancake/50pancake_solver", gen_pancake_hard, 7, True,
      "beam", ["beam", "-width", "100"], 50000),
