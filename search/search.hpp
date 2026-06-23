@@ -255,6 +255,13 @@ public:
 	}
 
 	void clear() {
+		// Reset each element's tracked index so nodes still referenced
+		// elsewhere (e.g. via a closed list) report that they are no longer in
+		// the list; a stale index otherwise corrupts a later push/update.
+		for (Maxq &q : qs)
+			for (std::vector<Node*> &bkt : q.bkts)
+				for (Node *n : bkt)
+					Ops::setind(n, -1);
 		qs.clear();
 		min = 0;
 		fill = 0;

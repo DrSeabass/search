@@ -83,8 +83,15 @@ public:
 	bool empty() const { return heap.empty(); }
 
 	// clear clears all of the elements from the heap
-	// leaving it empty.
-	void clear() { heap.clear(); }
+	// leaving it empty.  Each element's tracked index is reset to -1 so that
+	// any element still referenced elsewhere (e.g. via a closed list) correctly
+	// reports that it is no longer in the heap; otherwise a stale index can be
+	// fed back to update()/remove() and corrupt the heap.
+	void clear() {
+		for (unsigned int i = 0; i < heap.size(); i++)
+			Ops::setind(heap[i], -1);
+		heap.clear();
+	}
 
  	// size returns the number of entries in the heap.
 	long size() const { return heap.size(); }

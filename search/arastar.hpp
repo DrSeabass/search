@@ -162,7 +162,7 @@ template <class D> struct Arastar : public SearchAlgorithm<D> {
 		incons.clear();
 		delete nodes;
 		nodes = new Pool<Node>();
-		cost = Cost(-1);
+		cost = -1;	// "no incumbent" sentinel; see goodnodes()
 	}
 
 	virtual void output(FILE *out) {
@@ -215,7 +215,11 @@ protected:
 	}
 
 	bool goodnodes() {
-		return !open.empty() && (cost == Cost(-1) || cost > (*open.front())->fprime);
+		// cost < 0 means "no incumbent yet". Tested as a signed double rather
+		// than `cost == Cost(-1)`: for unsigned Cost types (e.g. blocksworld's
+		// `unsigned int`) Cost(-1) wraps to the max value and never matches the
+		// double -1.0 sentinel, which would stall the search at zero expansions.
+		return !open.empty() && (cost < 0 || cost > (*open.front())->fprime);
 	}
 
 	// findbound finds and returns the tightest bound for
