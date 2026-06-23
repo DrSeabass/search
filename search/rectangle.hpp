@@ -2,7 +2,7 @@
 //
 // Rectangle Search: a width-bounded, depth-striated beam search and the
 // parent of Triangle Search. One h-ranked open list per depth layer (a vector
-// of deques, best-h at the front). Each iteration expands up to beam_width
+// of per-depth min-heaps, best-h popped first). Each iteration expands up to beam_width
 // nodes from a layer, then lets deeper layers "catch up" at a rate set by the
 // aspect parameter — tracing out a rectangular (vs Triangle's triangular)
 // expansion profile. First-solution only (no anytime, no reopening), matching
@@ -19,7 +19,8 @@
 #include "../utils/pool.hpp"
 #include <cstring>
 #include <cstdlib>
-#include <deque>
+#include <queue>
+#include <unordered_set>
 #include <vector>
 
 void fatal(const char *, ...);
@@ -51,6 +52,31 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 
 	private:
 		ClosedEntry<Node, D> closedent;
+	};
+
+	// A depth layer's open list. Originally a deque kept sorted by h, which made
+	// both the duplicate check and the sorted insert O(layer size) -- quadratic
+	// on high-branching domains. We keep the exact same pop order (lowest h
+	// first; among equal h, the most recently inserted first) with an (h, seq)
+	// min-heap, and make the duplicate check O(1) with a membership set. seq is
+	// a monotonic insertion counter, so "largest seq among equal h" reproduces
+	// the old "inserted before existing equal-h entries" tie-break.
+	struct HeapEntry {
+		Cost h;
+		unsigned long seq;
+		Node *node;
+	};
+	struct HeapLess {
+		bool operator()(const HeapEntry &a, const HeapEntry &b) const {
+			if (a.h != b.h)
+				return a.h > b.h;	// smallest h on top
+			return a.seq < b.seq;	// ties: most recently inserted on top
+		}
+	};
+	struct Layer {
+		std::priority_queue<HeapEntry, std::vector<HeapEntry>, HeapLess> heap;
+		std::unordered_set<Node *> members;
+		bool empty() const { return heap.empty(); }
 	};
 
 	RectangleSearch(int argc, const char *argv[]) :
@@ -99,7 +125,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 		bool solved = false;
 
 		// Expand the root: its successors seed layer 0.
-		open.push_back(std::deque<Node *>());
+		open.push_back(Layer());
 		this->res.expd++;
 		{
 			State buf, &state = d.unpack(buf, n0->state);
@@ -115,7 +141,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 			}
 		}
 		if ((int) open.size() == 1)
-			open.push_back(std::deque<Node *>());
+			open.push_back(Layer());
 
 		while (!solved && !this->limit() && hasnonempty())
 			solved = step(d);
@@ -135,7 +161,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 	virtual void output(FILE *out) {
 		SearchAlgorithm<D>::output(out);
 		closed.prstats(stdout, "closed ");
-		dfpair(stdout, "open list type", "%s", "vector of h-sorted deques");
+		dfpair(stdout, "open list type", "%s", "vector of (h,seq) min-heaps w/ dedup");
 		dfpair(stdout, "node size", "%u", sizeof(Node));
 		dfpair(stdout, "beam width", "%d", width);
 		dfpair(stdout, "aspect", "%d", aspect);
@@ -145,7 +171,7 @@ private:
 
 	bool step(D &d) {
 		if ((int) open.size() == 1)
-			open.push_back(std::deque<Node *>());
+			open.push_back(Layer());
 
 		const int initial = (int) open.size();
 		for (int i = 0; i < initial - 1; i++) {
@@ -159,7 +185,7 @@ private:
 			}
 
 			for (int a = 0; a < aspect; a++)
-				open.push_back(std::deque<Node *>());
+				open.push_back(Layer());
 
 			const int cur = (int) open.size();
 			for (int j = i + 1; j < cur - 1; j++) {
@@ -187,8 +213,7 @@ private:
 		if (i >= (int) open.size() || open[i].empty())
 			return false;
 
-		Node *n = open[i].front();
-		open[i].pop_front();
+		Node *n = popbest(i);
 
 		State buf, &state = d.unpack(buf, n->state);
 		if (d.isgoal(state)) {
@@ -202,7 +227,7 @@ private:
 		this->res.expd++;
 
 		while ((int) open.size() <= i + 1)
-			open.push_back(std::deque<Node *>());
+			open.push_back(Layer());
 
 		typename D::Operators ops(d, state);
 		for (unsigned int k = 0; k < ops.size(); k++) {
@@ -265,21 +290,23 @@ private:
 		return false;
 	}
 
-	// Insert into a layer keeping it sorted ascending by h (best at front),
-	// skipping duplicates (a state maps to one Node, so pointer identity is
-	// state identity).
+	// Insert into a layer, skipping duplicates (a state maps to one Node, so
+	// pointer identity is state identity). O(1) dedup + O(log size) push.
 	void insert(int layer, Node *n) {
-		std::deque<Node *> &dq = open[layer];
-		for (Node *m : dq) {
-			if (m == n)
-				return;
-		}
-		auto it = dq.begin();
-		for (; it != dq.end(); ++it) {
-			if (n->h <= (*it)->h)
-				break;
-		}
-		dq.insert(it, n);
+		Layer &L = open[layer];
+		if (!L.members.insert(n).second)	// already in this layer
+			return;
+		L.heap.push(HeapEntry{n->h, seqctr++, n});
+	}
+
+	// Remove and return the best-h node from layer i (lowest h, then most
+	// recently inserted) -- the old sorted deque's front().
+	Node *popbest(int i) {
+		Layer &L = open[i];
+		Node *n = L.heap.top().node;
+		L.heap.pop();
+		L.members.erase(n);
+		return n;
 	}
 
 	void trim() {
@@ -290,8 +317,8 @@ private:
 	}
 
 	bool hasnonempty() const {
-		for (const std::deque<Node *> &dq : open) {
-			if (!dq.empty())
+		for (const Layer &L : open) {
+			if (!L.empty())
 				return true;
 		}
 		return false;
@@ -302,7 +329,8 @@ private:
 	int depth = 1;
 	Node *goalnode = NULL;
 
-	std::vector<std::deque<Node *>> open;
+	std::vector<Layer> open;
+	unsigned long seqctr = 0;
 	ClosedList<Node, Node, D> closed;
 	Pool<Node> *nodes;
 };
