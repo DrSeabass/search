@@ -53,11 +53,23 @@
     "total nodes expanded": 95,
     "total nodes generated": 405
   },
+  "drobot :: rectangle -anytime -width 10 -aspect 5": {
+    "final sol cost": 5.884319,
+    "final sol length": 22,
+    "total nodes expanded": 7158962,
+    "total nodes generated": 31217263
+  },
   "drobot :: rectangle -width 10 -aspect 5": {
-    "final sol cost": 6.317163,
-    "final sol length": 23,
-    "total nodes expanded": 1721,
-    "total nodes generated": 7507
+    "final sol cost": 5.88432,
+    "final sol length": 22,
+    "total nodes expanded": 1720,
+    "total nodes generated": 7483
+  },
+  "drobot :: triangle -anytime -slope 8": {
+    "final sol cost": 5.884319,
+    "final sol length": 22,
+    "total nodes expanded": 6701444,
+    "total nodes generated": 29288372
   },
   "drobot :: triangle -slope 8": {
     "final sol cost": 6.40432,
@@ -80,8 +92,8 @@
   "gridnav :: rectangle -width 10 -aspect 5": {
     "final sol cost": 83.0,
     "final sol length": 84,
-    "total nodes expanded": 1532,
-    "total nodes generated": 3791
+    "total nodes expanded": 1533,
+    "total nodes generated": 3793
   },
   "gridnav :: triangle -slope 8": {
     "final sol cost": 83.0,
@@ -144,10 +156,10 @@
     "total nodes generated": 8425
   },
   "tiles :: rectangle -width 10 -aspect 5": {
-    "final sol cost": 56.0,
-    "final sol length": 57,
-    "total nodes expanded": 25511,
-    "total nodes generated": 51488
+    "final sol cost": 54.0,
+    "final sol length": 55,
+    "total nodes expanded": 25268,
+    "total nodes generated": 50988
   },
   "tiles :: speedy": {
     "final sol cost": 146.0,

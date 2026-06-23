@@ -5,8 +5,9 @@
 // of per-depth min-heaps, best-h popped first). Each iteration expands up to beam_width
 // nodes from a layer, then lets deeper layers "catch up" at a rate set by the
 // aspect parameter — tracing out a rectangular (vs Triangle's triangular)
-// expansion profile. First-solution only (no anytime, no reopening), matching
-// the Scorpion reference.
+// expansion profile. Stops at the first solution unless anytime=true, in which
+// case it keeps improving the incumbent and (reopening closed nodes reached by
+// a cheaper path, with g-bound pruning) converges to the optimal cost.
 //
 // Ported from src/search/search_algorithms/rectangle_search.cc; the
 // planning-specific machinery (path-dependent evaluators, pruning method,
@@ -25,6 +26,8 @@
 #include <utility>
 #include <vector>
 
+void dfrowhdr(FILE *, const char *, unsigned int ncols, ...);
+void dfrow(FILE *, const char *, const char *, ...);
 void fatal(const char *, ...);
 
 template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
@@ -85,11 +88,17 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 		SearchAlgorithm<D>(argc, argv), closed(30000001) {
 		width = 100;
 		aspect = 1;
+		anytime = false;
+		reopen = true;
 		for (int i = 0; i < argc; i++) {
 			if (i < argc - 1 && strcmp(argv[i], "-width") == 0)
 				width = atoi(argv[++i]);
 			else if (i < argc - 1 && strcmp(argv[i], "-aspect") == 0)
 				aspect = atoi(argv[++i]);
+			else if (strcmp(argv[i], "-anytime") == 0)
+				anytime = true;
+			else if (strcmp(argv[i], "-noreopen") == 0)
+				reopen = false;
 		}
 
 		if (width < 1)
@@ -105,6 +114,7 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 	}
 
 	void search(D &d, typename D::State &s0) {
+		rowhdr();
 		this->start();
 		closed.init(d);
 		depth = 1;
@@ -118,13 +128,13 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 		n0->expanded = true;
 		closed.add(n0, n0->state.hash(&d));
 
-		if (d.isgoal(s0)) {
-			solpath<D, Node>(d, n0, this->res);
+		if (d.isgoal(s0)) {	// start == goal: cost 0 is trivially optimal
+			updateincumbent(d, n0);
 			this->finish();
 			return;
 		}
 
-		bool solved = false;
+		bool done = false;
 
 		// Expand the root: its successors seed layer 0.
 		growback();
@@ -132,21 +142,22 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 		{
 			State buf, &state = d.unpack(buf, n0->state);
 			typename D::Operators ops(d, state);
-			for (unsigned int k = 0; k < ops.size() && !solved; k++) {
+			for (unsigned int k = 0; k < ops.size() && !done; k++) {
 				if (ops[k] == n0->pop)
 					continue;
 				this->res.gend++;
 				if (considerkid(d, n0, state, ops[k], 0)) {
-					solpath<D, Node>(d, goalnode, this->res);
-					solved = true;
+					updateincumbent(d, goalnode);
+					if (!anytime)
+						done = true;	// first solution
 				}
 			}
 		}
 		if ((int) open.size() == 1)
 			growback();
 
-		while (!solved && !this->limit() && hasnonempty())
-			solved = step(d);
+		while (!done && !this->limit() && hasnonempty())
+			done = step(d);
 
 		this->finish();
 	}
@@ -157,6 +168,8 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 		layerpool.clear();
 		closed.clear();
 		depth = 1;
+		haveincumbent = false;
+		nincumbent = 0;
 		delete nodes;
 		nodes = new Pool<Node>();
 	}
@@ -164,10 +177,12 @@ template <class D> struct RectangleSearch : public SearchAlgorithm<D> {
 	virtual void output(FILE *out) {
 		SearchAlgorithm<D>::output(out);
 		closed.prstats(stdout, "closed ");
-		dfpair(stdout, "open list type", "%s", "vector of (h,seq) min-heaps w/ dedup");
+		dfpair(stdout, "open list type", "%s", "deque of (h,seq) min-heaps w/ dedup");
 		dfpair(stdout, "node size", "%u", sizeof(Node));
 		dfpair(stdout, "beam width", "%d", width);
 		dfpair(stdout, "aspect", "%d", aspect);
+		dfpair(stdout, "anytime", "%s", anytime ? "true" : "false");
+		dfpair(stdout, "reopen closed", "%s", reopen ? "true" : "false");
 	}
 
 private:
@@ -211,24 +226,21 @@ private:
 	}
 
 	// Pop the best-h node from layer i and expand it, routing successors into
-	// layer i+1. Returns true iff a goal was reached.
+	// layer i+1. Returns true iff the search should stop (first solution in
+	// non-anytime mode). Goals are recorded as incumbents, never inserted, so a
+	// popped node is always an expandable non-goal (or an already-closed dup).
 	bool selectexpand(D &d, int i) {
 		if (i >= (int) open.size() || open[i].empty())
 			return false;
 
 		Node *n = popbest(i);
-
-		State buf, &state = d.unpack(buf, n->state);
-		if (d.isgoal(state)) {
-			solpath<D, Node>(d, n, this->res);
-			return true;
-		}
-		if (n->expanded)
+		if (n->expanded)	// stale cross-layer entry for a closed node
 			return false;
 
 		n->expanded = true;
 		this->res.expd++;
 
+		State buf, &state = d.unpack(buf, n->state);
 		while ((int) open.size() <= i + 1)
 			growback();
 
@@ -238,17 +250,26 @@ private:
 				continue;
 			this->res.gend++;
 			if (considerkid(d, n, state, ops[k], i + 1)) {
-				solpath<D, Node>(d, goalnode, this->res);
-				return true;
+				// Edge is out of scope now; tracing the path is safe.
+				updateincumbent(d, goalnode);
+				if (!anytime)
+					return true;	// first solution
 			}
 		}
 		return false;
 	}
 
-	// Generate one successor into layer `layer`. Returns true iff it is a goal.
+	// Generate one successor into layer `layer`. Returns true iff it is a goal
+	// (the caller records the incumbent once the Edge is out of scope).
 	bool considerkid(D &d, Node *parent, State &state, Oper op, int layer) {
 		typename D::Edge e(d, state, op);
 		Cost g = parent->g + e.cost;
+
+		// g-only bound pruning: once we hold an incumbent, a successor whose g
+		// already meets or exceeds it cannot improve on it. (g is monotone, so
+		// this is safe and lets the anytime search converge to the optimum.)
+		if (haveincumbent && g >= incumbent)
+			return false;
 
 		// Pack into a fresh node and look it up; destruct it if it is a
 		// duplicate (some domains have non-copyable PackedState, so we cannot
@@ -258,38 +279,52 @@ private:
 		unsigned long hash = kid->state.hash(&d);
 		Node *dup = static_cast<Node *>(closed.find(kid->state, hash));
 
-		if (dup) {
+		Node *target;
+		if (!dup) {
+			kid->g = g;
+			kid->h = d.h(e.state);
+			kid->parent = parent;
+			kid->op = op;
+			kid->pop = e.revop;
+			kid->expanded = false;
+			closed.add(kid, hash);
+			target = kid;
+		} else {
 			this->res.dups++;
 			nodes->destruct(kid);
-			if (dup->expanded)	// no reopening in Rectangle
-				return false;
-			if (g < dup->g) {
+			if (dup->expanded) {
+				// Reopen a closed node reached by a strictly cheaper path so
+				// the corrected g propagates to its successors. Without this,
+				// depth-striped search (layer = #operators, not cost) commits
+				// to the first path and cannot reach the optimum in non-unit
+				// domains.
+				if (!reopen || g >= dup->g)
+					return false;
+				dup->g = g;
+				dup->parent = parent;
+				dup->op = op;
+				dup->pop = e.revop;
+				dup->expanded = false;
+				this->res.reopnd++;
+			} else if (g < dup->g) {	// improve a still-open node's path
 				dup->g = g;
 				dup->parent = parent;
 				dup->op = op;
 				dup->pop = e.revop;
 			}
-			insert(layer, dup);
-			return false;
+			target = dup;
 		}
-
-		kid->g = g;
-		kid->h = d.h(e.state);
-		kid->parent = parent;
-		kid->op = op;
-		kid->pop = e.revop;
-		kid->expanded = false;
-		closed.add(kid, hash);
-
-		insert(layer, kid);
 
 		// Record the goal only; the caller traces the path once `e` is
 		// destructed (some domains apply the operator in place and return a
-		// reference to the node's own state — see triangle.hpp).
+		// reference to the node's own state — see triangle.hpp). Goals are
+		// never inserted into a layer.
 		if (d.isgoal(e.state)) {
-			goalnode = kid;
+			goalnode = target;
 			return true;
 		}
+
+		insert(layer, target);
 		return false;
 	}
 
@@ -346,10 +381,33 @@ private:
 		return false;
 	}
 
+	void updateincumbent(D &d, Node *goal) {
+		Cost c = goal->g;
+		if (haveincumbent && !(c < incumbent))
+			return;
+		incumbent = c;
+		haveincumbent = true;
+		solpath<D, Node>(d, goal, this->res);
+		nincumbent++;
+		dfrow(stdout, "incumbent", "uuugg", nincumbent, this->res.expd,
+			this->res.gend, (double) c, walltime() - this->res.wallstart);
+	}
+
+	void rowhdr() {
+		dfrowhdr(stdout, "incumbent", 5, "num", "nodes expanded",
+			"nodes generated", "solution cost", "wall time");
+	}
+
 	int width;
 	int aspect;
+	bool anytime;
+	bool reopen;
 	int depth = 1;
 	Node *goalnode = NULL;
+
+	bool haveincumbent = false;
+	Cost incumbent = Cost(0);
+	unsigned long nincumbent = 0;
 
 	std::deque<Layer> open;
 	std::vector<Layer> layerpool;	// recycled empty layers (retain capacity)

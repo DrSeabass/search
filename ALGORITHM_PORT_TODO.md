@@ -85,10 +85,16 @@ variants on top. Adaptive/ratchet are deltas on the Triangle engine, so the engi
     survive (that's the anytime data). **Always pass `-mem <cap>` and `-walltime <s>`**
     to every Burns run; an unbounded anytime run will swap the box. Rectangle is
     width-bounded and does not have this growth.
-  - Defaults match Scorpion: `triangle` slope=1, reopen on, anytime off
-    (`-slope N`, `-anytime`, `-noreopen`); `rectangle` width=100, aspect=1
-    (`-width N`, `-aspect N`). Rectangle is first-solution only (no anytime/reopen),
-    matching the reference.
+  - Defaults: `triangle` slope=1, reopen on, anytime off
+    (`-slope N`, `-anytime`, `-noreopen`); `rectangle` width=100, aspect=1, reopen on,
+    anytime off (`-width N`, `-aspect N`, `-anytime`, `-noreopen`).
+  - **[2026-06-23] Both converge to optimal.** `rectangle` now mirrors `triangle`:
+    reopens closed nodes reached by a cheaper path (default on) and, with `-anytime`,
+    keeps improving the incumbent under g-bound pruning until it exhausts the
+    sub-incumbent space — so anytime cost converges to the optimum (verified on the
+    non-unit drobot/gridnav domains; guarded by the `-anytime` regression rows). This
+    diverges from the *current* Scorpion rectangle port, which is still first-solution
+    / no-reopen — see cross-suite note below.
   - **[done 2026-06-23] Regression coverage:** `triangle`/`rectangle` (first-solution)
     added to the `regression/` matrix across domains (rectangle omitted on pancake — too
     slow), plus `beam` on drobot and `arastar` on blocksworld to lock in the two bug

@@ -180,9 +180,15 @@ DOMAINS = [
     },
     {
         "name": "drobot", "solver": "drobot/drobot_solver", "gen": gen_drobot, "seed": 42,
+        # drobot has non-unit costs, so it's the case that exercises reopening.
         # beam locks in the BinHeap::clear() heap-index fix (it crashed here).
+        # The two `-anytime` configs guard optimal convergence: their blessed
+        # cost equals A*'s optimum (5.884319), so a reopening/anytime regression
+        # that stops short of optimal would trip them here.
         "algs": [["astar"], ["greedy"], ["beam", "-width", "100"],
-                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"],
+                 ["triangle", "-anytime", "-slope", "8"],
+                 ["rectangle", "-anytime", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "synth_tree", "solver": "synth_tree/synth_tree_solver", "gen": gen_synth_tree, "seed": 42,
