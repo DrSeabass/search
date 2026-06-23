@@ -74,13 +74,16 @@ else:
 
 # ----------------------------------------------------------------------------
 # Algorithm basket: the self-configuring variants, run to completion (anytime),
-# plus A* (the optimal reference). adaptive_triangle uses -penalty 0 -- the
-# parameterless dynamic-slope config that does not penalize non-progress.
+# plus A* (the optimal reference) and ANA* (the parameterless anytime baseline).
+# adaptive_triangle uses -penalty 0 -- the parameterless dynamic-slope config
+# that does not penalize non-progress. ANA* is the head-to-head foil: the
+# recognized parameterless anytime search the variants are claimed to match.
 # ----------------------------------------------------------------------------
 ALGORITHMS = [
     ("astar", ["astar"]),                                       # optimal reference
     ("ratchet_triangle", ["ratchet_triangle", "-anytime"]),
     ("adaptive_triangle", ["adaptive_triangle", "-anytime", "-penalty", "0"]),
+    ("ana", ["ana", "-anytime"]),                               # parameterless anytime baseline
 ]
 
 
@@ -148,10 +151,12 @@ print(f"[enhanced-to-completion] {num_runs} runs: {len(DOMAINS)} domains x "
       f"(time_limit={TIME_LIMIT}s, memory={MEMORY_MB}MB)")
 
 
-# A run that exhausts its open lists prints this; for an anytime variant that
-# means the incumbent is proved optimal.
+# An anytime run that exhausts its open list before any time/memory limit
+# reports `converged: yes`; with an incumbent in hand that proves it optimal.
+# The triangle variants and ana all emit this datafile pair.
 def parse_proved_optimal(content, props):
-    props["proved_optimal"] = int("best solution found" in content)
+    props["proved_optimal"] = int(bool(
+        re.search(r'"converged"\s+"yes"', content)))
 
 
 parser = rdb_parser.get_parser()

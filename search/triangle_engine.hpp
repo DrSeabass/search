@@ -145,6 +145,11 @@ template <class D> struct TriangleEngine : public SearchAlgorithm<D> {
 			done = cascade(d);
 		}
 
+		// In anytime mode the loop ends either because a limit was hit or
+		// because the open layers were exhausted; the latter (with an incumbent
+		// in hand) proves the incumbent optimal.
+		converged = anytime && haveincumbent && !this->limit();
+
 		this->finish();
 	}
 
@@ -156,6 +161,7 @@ template <class D> struct TriangleEngine : public SearchAlgorithm<D> {
 		maxactive = -1;
 		haveincumbent = false;
 		nincumbent = 0;
+		converged = false;
 		delete nodes;
 		nodes = new Pool<Node>();
 	}
@@ -167,6 +173,7 @@ template <class D> struct TriangleEngine : public SearchAlgorithm<D> {
 		dfpair(stdout, "node size", "%u", sizeof(Node));
 		dfpair(stdout, "anytime", "%s", anytime ? "true" : "false");
 		dfpair(stdout, "reopen closed", "%s", reopen ? "true" : "false");
+		dfpair(stdout, "converged", "%s", converged ? "yes" : "no");
 	}
 
 protected:
@@ -364,6 +371,7 @@ protected:
 	bool haveincumbent = false;
 	Cost incumbent = Cost(0);
 	unsigned long nincumbent = 0;
+	bool converged = false;
 	Node *goalnode = NULL;
 
 	ClosedList<Node, Node, D> closed;

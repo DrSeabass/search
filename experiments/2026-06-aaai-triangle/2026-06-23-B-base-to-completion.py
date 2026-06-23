@@ -81,12 +81,14 @@ else:
 
 # ----------------------------------------------------------------------------
 # Algorithm basket: base configs, run to completion (anytime), plus A* (the
-# optimal reference). Limits are appended uniformly below.
+# optimal reference) and ANA* (the parameterless anytime baseline -- the
+# recognized parameterless foil to Triangle's slope). Limits appended uniformly.
 # ----------------------------------------------------------------------------
 ALGORITHMS = [
     ("astar", ["astar"]),                          # optimal reference
     ("triangle", ["triangle", "-anytime"]),        # base config (slope 1), to completion
     ("rectangle", ["rectangle", "-anytime"]),      # base config (width 100, aspect 1)
+    ("ana", ["ana", "-anytime"]),                  # parameterless anytime baseline
 ]
 
 
@@ -154,10 +156,12 @@ print(f"[base-to-completion] {num_runs} runs: {len(DOMAINS)} domains x "
       f"(time_limit={TIME_LIMIT}s, memory={MEMORY_MB}MB)")
 
 
-# A run that exhausts its open lists prints this; for an anytime triangle /
-# rectangle that means the incumbent is proved optimal.
+# An anytime run that exhausts its open list before any time/memory limit
+# reports `converged: yes`; with an incumbent in hand that proves it optimal.
+# triangle/rectangle/ana all emit this datafile pair.
 def parse_proved_optimal(content, props):
-    props["proved_optimal"] = int("best solution found" in content)
+    props["proved_optimal"] = int(bool(
+        re.search(r'"converged"\s+"yes"', content)))
 
 
 parser = rdb_parser.get_parser()
