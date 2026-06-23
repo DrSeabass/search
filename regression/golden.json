@@ -5,6 +5,12 @@
     "total nodes expanded": 59,
     "total nodes generated": 674
   },
+  "blocksworld :: ana": {
+    "final sol cost": 14.0,
+    "final sol length": 15,
+    "total nodes expanded": 27,
+    "total nodes generated": 376
+  },
   "blocksworld :: arastar -wt0 5 -dwt 1": {
     "final sol cost": 13.0,
     "final sol length": 14,
@@ -58,6 +64,18 @@
     "final sol length": 22,
     "total nodes expanded": 6710106,
     "total nodes generated": 29325245
+  },
+  "drobot :: ana": {
+    "final sol cost": 6.231911,
+    "final sol length": 26,
+    "total nodes expanded": 95,
+    "total nodes generated": 403
+  },
+  "drobot :: ana -anytime": {
+    "final sol cost": 5.884319,
+    "final sol length": 22,
+    "total nodes expanded": 56727,
+    "total nodes generated": 256957
   },
   "drobot :: astar": {
     "final sol cost": 5.884319,
@@ -119,6 +137,12 @@
     "total nodes expanded": 202,
     "total nodes generated": 450
   },
+  "gridnav :: ana": {
+    "final sol cost": 85.0,
+    "final sol length": 86,
+    "total nodes expanded": 88,
+    "total nodes generated": 160
+  },
   "gridnav :: astar": {
     "final sol cost": 83.0,
     "final sol length": 84,
@@ -161,6 +185,12 @@
     "total nodes expanded": 145,
     "total nodes generated": 6956
   },
+  "pancake :: ana": {
+    "final sol cost": 58.0,
+    "final sol length": 59,
+    "total nodes expanded": 67,
+    "total nodes generated": 3203
+  },
   "pancake :: greedy": {
     "final sol cost": 81.0,
     "final sol length": 82,
@@ -190,6 +220,12 @@
     "final sol length": 68,
     "total nodes expanded": 68,
     "total nodes generated": 1678
+  },
+  "synth_tree :: ana": {
+    "final sol cost": 588.0,
+    "final sol length": 68,
+    "total nodes expanded": 67,
+    "total nodes generated": 1653
   },
   "synth_tree :: astar": {
     "final sol cost": 500.0,
@@ -226,6 +262,12 @@
     "final sol length": 147,
     "total nodes expanded": 3985,
     "total nodes generated": 8383
+  },
+  "tiles :: ana": {
+    "final sol cost": 142.0,
+    "final sol length": 143,
+    "total nodes expanded": 3415,
+    "total nodes generated": 7380
   },
   "tiles :: greedy": {
     "final sol cost": 146.0,
@@ -269,6 +311,12 @@
     "total nodes expanded": 9,
     "total nodes generated": 33
   },
+  "traffic :: ana": {
+    "final sol cost": 8.0,
+    "final sol length": 9,
+    "total nodes expanded": 8,
+    "total nodes generated": 29
+  },
   "traffic :: astar": {
     "final sol cost": 8.0,
     "final sol length": 9,
@@ -304,6 +352,12 @@
     "final sol length": 39,
     "total nodes expanded": 1892,
     "total nodes generated": 4105
+  },
+  "vacuum :: ana": {
+    "final sol cost": 45.0,
+    "final sol length": 46,
+    "total nodes expanded": 326,
+    "total nodes generated": 717
   },
   "vacuum :: astar": {
     "final sol cost": 37.0,

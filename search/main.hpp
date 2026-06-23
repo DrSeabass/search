@@ -17,6 +17,7 @@
 #include "ratchet_triangle.hpp"
 #include "adaptive_triangle.hpp"
 #include "rectangle.hpp"
+#include "ana.hpp"
 #include "bead.hpp"
 #include "beam-mm.hpp"
 #include "hhatgreedy.hpp"
@@ -118,6 +119,8 @@ template<class D> SearchAlgorithm<D> *getsearch(int argc, const char *argv[]) {
 		return new AdaptiveTriangleSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "rectangle") == 0)
 		return new RectangleSearch<D>(argc, argv);
+	else if (strcmp(argv[1], "ana") == 0)
+		return new AnaSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "bead") == 0)
 		return new BeadSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "beam-mm") == 0)

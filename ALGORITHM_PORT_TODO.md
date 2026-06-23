@@ -172,10 +172,15 @@ h-trend signal) — no preferred operators or other planning-specific signals.
 
 ### 2. Baselines to add (expected comparisons)
 
-6. **ANA\*** — anytime, nonparametric — **[build]**
+6. **ANA\*** — anytime, nonparametric — **[done]** (`search/ana.hpp`, name `ana`)
    - The existing *parameterless* anytime search; the direct foil to the
      parameterless Triangle claim. Highest-priority baseline.
    - van den Berg, Shah, Huang, Goldberg. *Anytime Nonparametric A\*.* AAAI 2011.
+   - Ported from Scorpion's `anytime_nonparametric_search`. Single potential-
+     ordered heap, re-keyed on each incumbent improvement (`reorderopen()`).
+     Defaults `reopen=true`, first-solution mode; `-anytime` converges to
+     optimal (verified on drobot/gridnav, reaches A*'s optimum). Cross-multiplied
+     potential done in double, since gridnav's Cost class has no operator*.
 
 7. **ε-GBFS** — satisficing, exploratory GBFS — **[build]**
    - ε-greedy node selection on top of GBFS. Cheap; defuses "compared only to
