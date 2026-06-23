@@ -15,7 +15,10 @@ layer is how you actually run a study.
 [`run_regression.py`](run_regression.py), for each domain in the working set:
 
 1. generates **one small instance from a fixed seed**,
-2. runs a few standard algorithms (A\*, weighted A\*, greedy, speedy) on it,
+2. runs a basket of algorithms on it — the standard ones (A\*, weighted A\*,
+   greedy, speedy) plus the depth-striated beam family (`triangle`, `rectangle`)
+   in first-solution mode, and `beam`/`arastar` on the two domains where they
+   previously had bugs (drobot / blocksworld) to keep those fixes locked in,
 3. parses the solver's RDB output with the suite's own
    [`utils/rdb_to_json.py`](../utils/rdb_to_json.py), and
 4. compares a stable metric subset against [`golden.json`](golden.json).

@@ -50,8 +50,29 @@ variants on top. Adaptive/ratchet are deltas on the Triangle engine, so the engi
        until after `considerkid` returns (Edge destructed). `beam` sidesteps this by
        only detecting goals on pop. **Rule for any new algorithm here: never trace the
        path while an `Edge` is in scope.**
-  - **Pre-existing suite issue (NOT ours):** `beam` crashes on `drobot`
-    ("Updating an invalid heap index"). Surfaces as the only crash-error in the batch.
+  - **[fixed 2026-06-22] Pre-existing suite bug:** `beam` crashed on `drobot`
+    ("Updating an invalid heap index"). Root cause: `clear()` emptied the open list
+    without resetting each element's tracked index, so a node discarded by beam kept a
+    stale `openind >= 0`; a later duplicate then made `mem()` lie and `update()` ran on a
+    stale index. Fixed `BinHeap::clear()` (`structs/binheap.hpp`) and the bucketed
+    `OpenList<…,IntOpenCost>::clear()` (`search/search.hpp`) to reset indices on clear —
+    a suite-wide hardening for any algorithm that clears an open list. `beam` now solves
+    all 8 domains; full batch has 0 crash-errors. (Latent sibling: `minmaxheap.hpp`
+    `clear()` has the same pattern; fix if a min-max-heap algorithm trips it.)
+  - **[fixed 2026-06-22] Pre-existing suite bug:** `arastar` expanded 0 nodes on
+    `blocksworld` (and any **unsigned-`Cost`** domain). Root cause: the "no incumbent
+    yet" sentinel was `cost == Cost(-1)`, but for `unsigned int` Cost (blocksworld)
+    `Cost(-1)` wraps to UINT_MAX and never equals the `double cost = -1.0` member, so
+    `goodnodes()` returned false and the search stalled. Fixed both sentinel sites in
+    `search/arastar.hpp` to test `cost < 0` / assign `cost = -1` (robust for signed,
+    unsigned, and float Cost). ARA\* now solves blocksworld (cost 6 = optimal) and
+    expands normally on all domains.
+  - **Known limitation (pre-existing, applies to all anytime algos):** on OOM,
+    `main.hpp` clears `res.path`, so an anytime run that exhausts memory mid-convergence
+    (e.g. ARA\*/anytime-Triangle on a hard tiles instance) reports `final sol cost = -1`
+    / coverage 0 — but its `#altrow "incumbent"` trajectory is preserved (that is the
+    data the anytime score uses). Give anytime runs generous memory; on Tetralith each
+    run has a dedicated core/memory so local 4-way contention doesn't apply.
   Original quick checks retained below:
   - tiles seed-42 4×4: A\* optimal = 53. `triangle` (slope 1) = 63 @ 3029 exp;
     `rectangle -width 100 -aspect 1` = 53 @ 602k exp; `-width 10 -aspect 5` = 55 @ 25k;
@@ -68,7 +89,11 @@ variants on top. Adaptive/ratchet are deltas on the Triangle engine, so the engi
     (`-slope N`, `-anytime`, `-noreopen`); `rectangle` width=100, aspect=1
     (`-width N`, `-aspect N`). Rectangle is first-solution only (no anytime/reopen),
     matching the reference.
-  - Follow-up (not blocking the batch): add golden-number rows to `regression/`.
+  - **[done 2026-06-23] Regression coverage:** `triangle`/`rectangle` (first-solution)
+    added to the `regression/` matrix across domains (rectangle omitted on pancake — too
+    slow), plus `beam` on drobot and `arastar` on blocksworld to lock in the two bug
+    fixes. `golden.json` re-blessed (36 runs, ~13s, deterministic; `make regression`
+    passes). Anytime mode is deliberately excluded from regression (unbounded/slow).
 
 **Steps:**
 

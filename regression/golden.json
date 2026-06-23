@@ -1,4 +1,10 @@
 {
+  "blocksworld :: arastar -wt0 5 -dwt 1": {
+    "final sol cost": 13.0,
+    "final sol length": 14,
+    "total nodes expanded": 137,
+    "total nodes generated": 1467
+  },
   "blocksworld :: astar": {
     "final sol cost": 13.0,
     "final sol length": 14,
@@ -10,6 +16,18 @@
     "final sol length": 14,
     "total nodes expanded": 24,
     "total nodes generated": 337
+  },
+  "blocksworld :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 13.0,
+    "final sol length": 14,
+    "total nodes expanded": 998,
+    "total nodes generated": 20315
+  },
+  "blocksworld :: triangle -slope 8": {
+    "final sol cost": 13.0,
+    "final sol length": 14,
+    "total nodes expanded": 36,
+    "total nodes generated": 425
   },
   "blocksworld :: wastar -wt 2": {
     "final sol cost": 13.0,
@@ -23,11 +41,29 @@
     "total nodes expanded": 50954,
     "total nodes generated": 230040
   },
+  "drobot :: beam -width 100": {
+    "final sol cost": 6.686569,
+    "final sol length": 36,
+    "total nodes expanded": 3109,
+    "total nodes generated": 14105
+  },
   "drobot :: greedy": {
     "final sol cost": 6.231911,
     "final sol length": 26,
     "total nodes expanded": 95,
     "total nodes generated": 405
+  },
+  "drobot :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 6.317163,
+    "final sol length": 23,
+    "total nodes expanded": 1721,
+    "total nodes generated": 7507
+  },
+  "drobot :: triangle -slope 8": {
+    "final sol cost": 6.40432,
+    "final sol length": 30,
+    "total nodes expanded": 148,
+    "total nodes generated": 638
   },
   "gridnav :: astar": {
     "final sol cost": 83.0,
@@ -41,6 +77,18 @@
     "total nodes expanded": 88,
     "total nodes generated": 160
   },
+  "gridnav :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 83.0,
+    "final sol length": 84,
+    "total nodes expanded": 1532,
+    "total nodes generated": 3791
+  },
+  "gridnav :: triangle -slope 8": {
+    "final sol cost": 83.0,
+    "final sol length": 84,
+    "total nodes expanded": 435,
+    "total nodes generated": 1057
+  },
   "gridnav :: wastar -wt 2": {
     "final sol cost": 85.0,
     "final sol length": 86,
@@ -52,6 +100,12 @@
     "final sol length": 82,
     "total nodes expanded": 81,
     "total nodes generated": 3889
+  },
+  "pancake :: triangle -slope 8": {
+    "final sol cost": 54.0,
+    "final sol length": 55,
+    "total nodes expanded": 271,
+    "total nodes generated": 12981
   },
   "pancake :: wastar -wt 3": {
     "final sol cost": 57.0,
@@ -71,17 +125,41 @@
     "total nodes expanded": 66,
     "total nodes generated": 1650
   },
+  "synth_tree :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 534.0,
+    "final sol length": 59,
+    "total nodes expanded": 33217,
+    "total nodes generated": 830403
+  },
+  "synth_tree :: triangle -slope 8": {
+    "final sol cost": 559.0,
+    "final sol length": 64,
+    "total nodes expanded": 280,
+    "total nodes generated": 6978
+  },
   "tiles :: greedy": {
     "final sol cost": 146.0,
     "final sol length": 147,
     "total nodes expanded": 3934,
     "total nodes generated": 8425
   },
+  "tiles :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 56.0,
+    "final sol length": 57,
+    "total nodes expanded": 25511,
+    "total nodes generated": 51488
+  },
   "tiles :: speedy": {
     "final sol cost": 146.0,
     "final sol length": 147,
     "total nodes expanded": 3934,
     "total nodes generated": 8425
+  },
+  "tiles :: triangle -slope 8": {
+    "final sol cost": 178.0,
+    "final sol length": 179,
+    "total nodes expanded": 7515,
+    "total nodes generated": 15723
   },
   "tiles :: wastar -wt 3": {
     "final sol cost": 78.0,
@@ -101,6 +179,18 @@
     "total nodes expanded": 8,
     "total nodes generated": 30
   },
+  "traffic :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 8.0,
+    "final sol length": 9,
+    "total nodes expanded": 76,
+    "total nodes generated": 315
+  },
+  "traffic :: triangle -slope 8": {
+    "final sol cost": 8.0,
+    "final sol length": 9,
+    "total nodes expanded": 8,
+    "total nodes generated": 29
+  },
   "vacuum :: astar": {
     "final sol cost": 37.0,
     "final sol length": 38,
@@ -112,5 +202,17 @@
     "final sol length": 167,
     "total nodes expanded": 329,
     "total nodes generated": 643
+  },
+  "vacuum :: rectangle -width 10 -aspect 5": {
+    "final sol cost": 37.0,
+    "final sol length": 38,
+    "total nodes expanded": 2590,
+    "total nodes generated": 5437
+  },
+  "vacuum :: triangle -slope 8": {
+    "final sol cost": 37.0,
+    "final sol length": 38,
+    "total nodes expanded": 474,
+    "total nodes generated": 1061
   }
 }

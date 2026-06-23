@@ -149,44 +149,64 @@ def gen_blocksworld(workdir, seed):
 
 
 # --- The regression matrix ----------------------------------------------------
-# Working domains only (blocksworld/segments/visnav/plat2d are excluded; see
-# TODO.md and regression/README.md). Algorithms are chosen to be fast and to
-# exercise the standard baskets: A*, weighted A*, greedy, speedy.
+# Working domains only (segments/visnav/plat2d are excluded; see TODO.md and
+# regression/README.md). Algorithms exercise the standard baskets (A*, weighted
+# A*, greedy, speedy) plus the depth-striated beam family ported for the AAAI
+# parameterless-Triangle work: `triangle` and `rectangle`. Triangle is run in
+# its default first-solution mode (NOT -anytime: an anytime run searches until
+# the space is exhausted, which is neither fast nor bounded in memory and so has
+# no place in the quick regression). `beam` on drobot and `arastar` on
+# blocksworld are included specifically to lock in two bug fixes: a heap-index
+# corruption on clear() (beam/drobot) and an unsigned-Cost incumbent sentinel
+# (arastar/blocksworld). All configs are deterministic and sub-second to a few
+# seconds on the small fixed-seed instances here.
 
 DOMAINS = [
     {
         "name": "tiles", "solver": "tiles/15md_solver", "gen": gen_tiles, "seed": 1,
         # A* on a random 4x4 is ~5M expansions; use the satisficing baskets here.
-        "algs": [["greedy"], ["speedy"], ["wastar", "-wt", "3"]],
+        "algs": [["greedy"], ["speedy"], ["wastar", "-wt", "3"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "gridnav", "solver": "gridnav/gridnav_solver", "gen": gen_gridnav, "seed": 42,
-        "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"]],
+        "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "vacuum", "solver": "vacuum/vacuum_solver", "gen": gen_vacuum, "seed": 42,
-        "algs": [["astar"], ["greedy"]],
+        "algs": [["astar"], ["greedy"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "drobot", "solver": "drobot/drobot_solver", "gen": gen_drobot, "seed": 42,
-        "algs": [["astar"], ["greedy"]],
+        # beam locks in the BinHeap::clear() heap-index fix (it crashed here).
+        "algs": [["astar"], ["greedy"], ["beam", "-width", "100"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "synth_tree", "solver": "synth_tree/synth_tree_solver", "gen": gen_synth_tree, "seed": 42,
-        "algs": [["astar"], ["greedy"]],
+        "algs": [["astar"], ["greedy"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "traffic", "solver": "traffic/traffic_solver", "gen": gen_traffic, "seed": 0,
-        "algs": [["astar"], ["greedy"]],
+        "algs": [["astar"], ["greedy"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
     {
         "name": "pancake", "solver": "pancake/50pancake_solver", "gen": gen_pancake, "seed": 7,
         # A* on 50 cakes is heavy; greedy/wA* are the standard satisficing runs.
-        "algs": [["greedy"], ["wastar", "-wt", "3"]],
+        # Rectangle is omitted here: its catch-up schedule is very slow on a
+        # depth-~49 problem and would blow the regression's fast-run budget.
+        "algs": [["greedy"], ["wastar", "-wt", "3"], ["triangle", "-slope", "8"]],
     },
     {
         "name": "blocksworld", "solver": "blocksworld/20bw_solver", "gen": gen_blocksworld, "seed": 42,
-        "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"]],
+        # arastar locks in the unsigned-Cost incumbent-sentinel fix (it expanded
+        # 0 nodes here before the fix).
+        "algs": [["astar"], ["greedy"], ["wastar", "-wt", "2"], ["arastar", "-wt0", "5", "-dwt", "1"],
+                 ["triangle", "-slope", "8"], ["rectangle", "-width", "10", "-aspect", "5"]],
     },
 ]
 

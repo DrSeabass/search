@@ -1,0 +1,8 @@
+[project]
+name = "search-aaai-triangle"
+version = "0.1.0"
+description = "Downward Lab aaai-triangle study for the heuristic-search suite"
+requires-python = ">=3.10"
+dependencies = [
+    "lab==8.9",
+]
