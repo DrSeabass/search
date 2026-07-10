@@ -1,8 +1,10 @@
 // Copyright © 2026 the Search Authors under the MIT license. See AUTHORS for the list of authors.
 //
 // Adaptive Triangle Search: Triangle whose per-step dive depth is set by a
-// heuristic-trend budget instead of a slope parameter. Each step starts with
-// budget 1; instantiating a new frontier layer costs one unit, an informed
+// heuristic-trend budget instead of a slope parameter. Unspent budget carries
+// between steps: each step starts with max(1, remaining) so leftover credit is
+// kept while a depleted step still gets one unit. Instantiating a new frontier
+// layer costs one unit, an informed
 // layer-transition (h falls relative to the previous expansion in the step)
 // refunds one, and an uninformed transition debits `penalty` (default 1). The
 // cascade dives until it can no longer afford the next layer. With penalty 0
@@ -60,6 +62,7 @@ template <class D> struct AdaptiveTriangleSearch : public TriangleEngine<D> {
 		prev_layers_added = 0;
 		improving = 0;
 		nonimproving = 0;
+		budget = 1;
 	}
 
 protected:
@@ -73,7 +76,9 @@ protected:
 	}
 
 	bool cascade(D &d) {
-		int budget = 1;
+		// Unspent budget carries between steps; start with at least one unit so
+		// forward progress is always possible even after a depleted step.
+		budget = std::max(1, budget);
 		Cost last_h = Cost(0);
 		bool have_last = false;
 
@@ -154,4 +159,7 @@ protected:
 	// across steps, reset on each incumbent improvement.
 	int improving = 0;
 	int nonimproving = 0;
+	// Per-step heuristic-trend budget. Persists across steps so unspent credit
+	// carries; reset to max(1, remaining) at the top of each cascade.
+	int budget = 1;
 };
