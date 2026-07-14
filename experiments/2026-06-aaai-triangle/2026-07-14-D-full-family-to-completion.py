@@ -15,8 +15,8 @@ the A*/ANA* references. Everything runs anytime, to completion, the same
 protocol as the sibling studies B (base configs) and C (enhanced variants).
 
 Roster (edit ALGORITHMS / the ASPECTS / SLOPE knobs to adjust):
-  astar               -- optimal reference
-  ana        -anytime -- parameterless anytime baseline (the foil)
+  ana        -anytime -- ANA* (Anytime Nonparametric A*); the parameterless
+                        anytime baseline / foil
   triangle   -slope 50 -anytime          -- static Triangle (best static slope,
                                             ICAPS'23 HSDIP)
   rectangle  -aspect 1 -anytime          -- wide/square rectangle (ar = 1)
@@ -135,8 +135,9 @@ if not DOMAINS:
 # SLOPE knobs so the roster tracks those in one place.
 # ----------------------------------------------------------------------------
 ALGORITHMS = [
-    ("astar", ["astar"]),                                        # optimal reference
-    ("ana", ["ana", "-anytime"]),                                # parameterless anytime baseline
+    # ANA* (van den Berg et al. 2011): Anytime Nonparametric A*, the
+    # parameterless anytime baseline / foil.
+    ("ana", ["ana", "-anytime"]),
     (f"tri_s{SLOPE}", ["triangle", "-anytime", "-slope", str(SLOPE)]),
 ]
 for a in ASPECTS:
@@ -215,8 +216,7 @@ print(f"[full-family-to-completion] {num_runs} runs: {len(DOMAINS)} domains "
 
 # An anytime run that exhausts its open list before any time/memory limit
 # reports `converged: yes`; with an incumbent in hand that proves it optimal.
-# Triangle/Rectangle variants and ana all emit this datafile pair; astar does
-# not (proved_optimal stays 0 for it).
+# The Triangle/Rectangle variants and ANA* all emit this datafile pair.
 def parse_proved_optimal(content, props):
     props["proved_optimal"] = int(bool(
         re.search(r'"converged"\s+"yes"', content)))
@@ -254,13 +254,13 @@ ATTRIBUTES = [
 
 project.add_absolute_report(exp, attributes=ATTRIBUTES)
 
-# Scatter plots: A* (optimal reference) vs the family on search effort and
-# solution quality.
+# Scatter plots: the ANA* baseline vs the family on search effort and solution
+# quality.
 ALGO_NAMES = [name for name, _ in ALGORITHMS]
-if "astar" in ALGO_NAMES:
+if "ana" in ALGO_NAMES:
     focus = [f"rect_a{ASPECTS[0]}", f"rect_a{ASPECTS[-1]}", f"tri_s{SLOPE}",
              "adaptive_rectangle"]
-    pairs = [("astar", o) for o in focus if o in ALGO_NAMES]
+    pairs = [("ana", o) for o in focus if o in ALGO_NAMES]
     project.add_scatter_plot_reports(exp, pairs, ["expansions", "cost"])
 
 exp.run_steps()
