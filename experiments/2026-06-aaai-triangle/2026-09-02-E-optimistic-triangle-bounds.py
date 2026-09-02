@@ -2,8 +2,9 @@
 """Optimistic Triangle vs weighted A* and Aggressive Search.
 
 Sweeps controlled suboptimality bounds, Triangle slopes, and switching
-exponents on tiles, gridnav, and pancake.  Aggressive Search uses alpha=2,
-matching the conventional optimistic weight 1 + 2(w - 1).
+exponents on tiles, gridnav, and pancake. Aggressive Search sweeps the same
+values for alpha as Optimistic Triangle uses for k, allowing matched k/alpha
+comparisons. Its aggressive weight is 1 + alpha(w - 1).
 
 Local defaults are intentionally small; cluster defaults use ten instances and
 30-minute runs. Environment overrides use the COMPLETE_* knobs shared by the
@@ -30,7 +31,6 @@ from lab.reports import Attribute, arithmetic_mean, geometric_mean  # noqa: E402
 BOUNDS = [1.05, 1.1, 1.25, 1.5, 1.75, 2, 3, 5]
 SLOPES = [1, 50, 100, 1000]
 KS = [1, 2, 3, 5]
-AGGRESSIVE_ALPHA = 2
 DOMAINS = ["tiles", "gridnav", "pancake"]
 
 DIR = Path(__file__).resolve().parent
@@ -73,13 +73,14 @@ for w in BOUNDS:
         f"wastar-w{token(w)}", ["wastar", "-wt", str(w)],
         "wastar", w, None, None, None,
     ))
-    ALGORITHMS.append((
-        f"aggressive-w{token(w)}-a{AGGRESSIVE_ALPHA}",
-        ["aggressive", "-w", str(w), "-alpha", str(AGGRESSIVE_ALPHA)],
-        "aggressive", w, None, None, AGGRESSIVE_ALPHA,
-    ))
+    for alpha in KS:
+        ALGORITHMS.append((
+            f"aggressive-w{token(w)}-a{alpha}",
+            ["aggressive", "-w", str(w), "-alpha", str(alpha)],
+            "aggressive", w, None, None, alpha,
+        ))
 
-assert len(ALGORITHMS) == 144
+assert len(ALGORITHMS) == 168
 
 
 def with_limits(argv):
@@ -175,10 +176,10 @@ project.add_absolute_report(exp, attributes=ATTRIBUTES)
 pairs = []
 for w in BOUNDS:
     wa = f"wastar-w{token(w)}"
-    ag = f"aggressive-w{token(w)}-a{AGGRESSIVE_ALPHA}"
     for slope in SLOPES:
         for k in KS:
             ot = f"ot-w{token(w)}-s{slope}-k{k}"
+            ag = f"aggressive-w{token(w)}-a{k}"
             pairs.extend([(wa, ot), (ag, ot)])
 project.add_scatter_plot_reports(exp, pairs, ["expansions", "cost"])
 
