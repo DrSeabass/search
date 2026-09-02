@@ -52,6 +52,11 @@ else:
 
 LOCAL_PROCESSES = int(os.environ.get("COMPLETE_PROCESSES", "4"))
 MAX_SIZES = int(os.environ.get("COMPLETE_MAX_SIZES", "1"))
+# Lab's Tetralith default permits up to 2000 array tasks. This experiment has
+# thousands of short, independent runs, so that default would submit an
+# unnecessarily large array. Group runs sequentially into at most this many
+# tasks instead (5040 runs -> 252 tasks at the default 256-task cap).
+SLURM_MAX_TASKS = int(os.environ.get("COMPLETE_SLURM_TASKS", "256"))
 
 
 def token(value):
@@ -88,7 +93,13 @@ def with_limits(argv):
 
 
 if IS_TETRALITH:
-    ENV = project.TetralithEnvironment(
+    if SLURM_MAX_TASKS < 1:
+        sys.exit("COMPLETE_SLURM_TASKS must be >= 1")
+
+    class CompactTetralithEnvironment(project.TetralithEnvironment):
+        MAX_TASKS = SLURM_MAX_TASKS
+
+    ENV = CompactTetralithEnvironment(
         memory_per_cpu=f"{MEMORY_MB // 1024 + 1}G",
         cpus_per_task=1,
         extra_options=f"#SBATCH --account={NAISS_ACCOUNT}",
