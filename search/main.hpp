@@ -19,6 +19,7 @@
 #include "rectangle.hpp"
 #include "adaptive_rectangle.hpp"
 #include "optimistic_triangle.hpp"
+#include "aggressive.hpp"
 #include "ana.hpp"
 #include "bead.hpp"
 #include "beam-mm.hpp"
@@ -125,6 +126,8 @@ template<class D> SearchAlgorithm<D> *getsearch(int argc, const char *argv[]) {
 		return new AdaptiveRectangleSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "optimistic_triangle") == 0)
 		return new OptimisticTriangleSearch<D>(argc, argv);
+	else if (strcmp(argv[1], "aggressive") == 0)
+		return new AggressiveSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "ana") == 0)
 		return new AnaSearch<D>(argc, argv);
 	else if (strcmp(argv[1], "bead") == 0)
